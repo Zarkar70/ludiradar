@@ -58,6 +58,32 @@ function App() {
     return () => controller.abort();
   }, []);
 
+  // Choix stable et diversifie de boites issues des promotions actuelles.
+  const imagesBandeau = useMemo(() => {
+    const nomsVus = new Set();
+    const candidats = promotions.filter((jeu) => {
+      if (typeof jeu.image !== "string" || !/^https?:\/\//i.test(jeu.image)) return false;
+      const nom = String(jeu.nom || "").trim().toLocaleLowerCase("fr");
+      if (!nom || nomsVus.has(nom)) return false;
+      nomsVus.add(nom);
+      return true;
+    });
+
+    // Repartition reproductible : pas de changement aleatoire a chaque rendu.
+    const empreinte = (texte) => {
+      let valeur = 2166136261;
+      for (const caractere of texte) {
+        valeur = Math.imul(valeur ^ caractere.charCodeAt(0), 16777619);
+      }
+      return valeur >>> 0;
+    };
+
+    return candidats
+      .map((jeu) => ({ ...jeu, ordre: empreinte(String(jeu.id || jeu.nom)) }))
+      .sort((a, b) => a.ordre - b.ordre)
+      .slice(0, 30);
+  }, [promotions]);
+
   const boutiques = useMemo(() => {
     const noms = promotions
       .map((jeu) => jeu.boutique)
@@ -222,6 +248,15 @@ function App() {
   return (
     <div className="application">
       <header className="header">
+        {imagesBandeau.length > 0 && (
+          <div className="header-pelemele" aria-hidden="true">
+            {imagesBandeau.map((jeu, index) => (
+              <div className="header-boite" key={`${jeu.id || jeu.nom}-${index}`}>
+                <img src={jeu.image} alt="" loading={index < 12 ? "eager" : "lazy"} decoding="async" />
+              </div>
+            ))}
+          </div>
+        )}
         <div className="header-contenu">
           <div className="marque">
             <span className="logo-de">🎲</span>
