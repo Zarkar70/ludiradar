@@ -29,15 +29,12 @@ def convertir_prix(valeur):
 
 
 def texte(element):
-    if element:
-        return element.get_text(" ", strip=True)
-    return ""
+    return element.get_text(" ", strip=True) if element else ""
 
 
 def collecter():
-    print("Demarrage de la collecte LudiRadar...")
+    print("Collecte des promotions Ludifolie...")
 
-    # Verifier robots.txt
     robots = RobotFileParser()
     robots.set_url(BASE + "/robots.txt")
 
@@ -53,7 +50,6 @@ def collecter():
             "Collecte non autorisee pour cette page."
         )
 
-    # Telecharger la page
     response = requests.get(
         URL,
         timeout=20,
@@ -61,28 +57,20 @@ def collecter():
     )
     response.raise_for_status()
 
-    # Analyser les produits
     soup = BeautifulSoup(response.text, "html.parser")
     produits = soup.select("article.product-miniature")
 
-    print(f"Produits detectes : {len(produits)}")
-
     offres = []
     identifiants_vus = set()
+    date_collecte = datetime.now(timezone.utc).isoformat()
 
     for produit in produits:
-        titre = produit.select_one(
-            ".product-miniature__title"
-        )
-        prix = produit.select_one(
-            ".product-miniature__price"
-        )
+        titre = produit.select_one(".product-miniature__title")
+        prix = produit.select_one(".product-miniature__price")
         ancien = produit.select_one(
             ".product-miniature__regular-price"
         )
-        image = produit.select_one(
-            ".product-miniature__image"
-        )
+        image = produit.select_one(".product-miniature__image")
         stock = produit.select_one(
             ".product-miniature__stock-label"
         )
@@ -99,31 +87,12 @@ def collecter():
         if prix_actuel <= 0 or prix_initial <= prix_actuel:
             continue
 
-        reduction = round(
-            (1 - prix_actuel / prix_initial) * 100
-        )
-
         identifiant = produit.get("data-id-product")
 
-        if not identifiant:
-            continue
-
-        if identifiant in identifiants_vus:
+        if not identifiant or identifiant in identifiants_vus:
             continue
 
         identifiants_vus.add(identifiant)
-
-        lien = urljoin(
-            BASE,
-            titre.get("href", "")
-        )
-
-        image_url = ""
-        if image:
-            image_url = urljoin(
-                BASE,
-                image.get("src", "")
-            )
 
         offres.append({
             "id": f"ludifolie-{identifiant}",
@@ -131,67 +100,77 @@ def collecter():
             "boutique": "Ludifolie",
             "prix": prix_actuel,
             "ancien": prix_initial,
-            "reduction": reduction,
-            "image": image_url,
-            "url": lien,
+            "reduction": round(
+                (1 - prix_actuel / prix_initial) * 100
+            ),
+            "image": urljoin(
+                BASE,
+                image.get("src", "")
+            ) if image else "",
+            "url": urljoin(
+                BASE,
+                titre.get("href", "")
+            ),
             "stock": texte(stock),
-            "dateCollecte": datetime.now(
-                timezone.utc
-            ).isoformat()
+            "dateCollecte": date_collecte
         })
 
-    # Proteger les donnees
     if not offres:
         raise RuntimeError(
-            "Aucune promotion trouvee. "
-            "Ancien fichier conserve."
+            "Aucune promotion Ludifolie trouvee. "
+            "Fichier precedent conserve."
         )
+
+    # Charger les promotions deja enregistrees
+    anciennes_offres = []
 
     if SORTIE.exists():
         anciennes_offres = json.loads(
             SORTIE.read_text(encoding="utf-8")
         )
 
-        if (
-            anciennes_offres
-            and len(offres) < len(anciennes_offres) * 0.5
-        ):
-            raise RuntimeError(
-                "Baisse anormale du nombre de promotions. "
-                "Ancien fichier conserve."
-            )
+    if not isinstance(anciennes_offres, list):
+        raise RuntimeError("Format JSON existant incorrect.")
 
-    # Enregistrer les promotions
-    SORTIE.parent.mkdir(
-        parents=True,
-        exist_ok=True
-    )
+    anciennes_ludifolie = [
+        offre for offre in anciennes_offres
+        if offre.get("boutique") == "Ludifolie"
+    ]
+
+    # Eviter un remplacement en cas de collecte incomplete
+    if (
+        anciennes_ludifolie
+        and len(offres) < len(anciennes_ludifolie) * 0.5
+    ):
+        raise RuntimeError(
+            "Baisse anormale des promotions Ludifolie. "
+            "Fichier precedent conserve."
+        )
+
+    # Conserver les offres des autres boutiques
+    autres_boutiques = [
+        offre for offre in anciennes_offres
+        if offre.get("boutique") != "Ludifolie"
+    ]
+
+    toutes_les_offres = offres + autres_boutiques
+
+    SORTIE.parent.mkdir(parents=True, exist_ok=True)
 
     temporaire = SORTIE.with_suffix(".tmp")
-
     temporaire.write_text(
         json.dumps(
-            offres,
+            toutes_les_offres,
             ensure_ascii=False,
             indent=2
         ),
         encoding="utf-8"
     )
-
     temporaire.replace(SORTIE)
 
-    print()
-    print(f"Promotions enregistrees : {len(offres)}")
-    print(f"Fichier cree : {SORTIE}")
-    print()
-    print("--- PREMIERES PROMOTIONS ---")
-
-    for offre in offres[:5]:
-        print(
-            f"{offre['nom']} | "
-            f"{offre['prix']:.2f} EUR | "
-            f"-{offre['reduction']} %"
-        )
+    print(f"Promotions Ludifolie : {len(offres)}")
+    print(f"Autres boutiques conservees : {len(autres_boutiques)}")
+    print(f"Total LudiRadar : {len(toutes_les_offres)}")
 
 
 if __name__ == "__main__":
