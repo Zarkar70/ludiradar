@@ -1009,55 +1009,58 @@ a {
   }
 }
 
-/* MINIATURES DES BOITES DANS LE COMPARATEUR */
-.ligne-produit {
+/* UNE SEULE BOITE DE JEU DANS L'EN-TETE DU COMPARATEUR */
+.comparaison-identite {
   display: flex;
   align-items: center;
-  flex: 1 1 0;
+  gap: 17px;
+  flex: 1 1 320px;
   min-width: 0;
-  gap: 15px;
 }
 
-.miniature-jeu {
+.comparaison-titre {
+  min-width: 0;
+}
+
+.miniature-entete {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 68px;
-  height: 82px;
-  flex: 0 0 68px;
-  padding: 5px;
+  width: 76px;
+  height: 92px;
+  flex: 0 0 76px;
+  padding: 6px;
   overflow: hidden;
   border: 1px solid #e9e2f5;
-  border-radius: 10px;
+  border-radius: 11px;
   background: #fff;
 }
 
-.miniature-jeu img {
+.miniature-entete img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: center;
 }
 
-.miniature-jeu > span,
-.miniature-jeu.sans-image::after {
-  font-size: 27px;
+.miniature-entete > span,
+.miniature-entete.sans-image::after {
+  font-size: 28px;
 }
 
-.miniature-jeu.sans-image::after {
+.miniature-entete.sans-image::after {
   content: "🎲";
 }
 
 @media (max-width: 580px) {
-  .ligne-produit {
-    flex: 1 1 100%;
+  .comparaison-identite {
     gap: 11px;
+    flex-basis: 100%;
   }
 
-  .miniature-jeu {
-    width: 56px;
-    height: 70px;
-    flex-basis: 56px;
+  .miniature-entete {
+    width: 58px;
+    height: 72px;
+    flex-basis: 58px;
   }
 }

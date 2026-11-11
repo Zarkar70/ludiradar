@@ -512,8 +512,24 @@ function App() {
                         key={`${groupe.nom}-${index}`}
                       >
                         <div className="comparaison-entete">
-                          <div>
-                            <span
+                          <div className="comparaison-identite">
+                            <div className="miniature-jeu miniature-entete">
+                              {groupe.offres.some((offre) => offre.image) ? (
+                                <img
+                                  src={groupe.offres.find((offre) => offre.image).image}
+                                  alt={`Boîte de ${groupe.nom}`}
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = "none";
+                                    e.currentTarget.parentElement.classList.add("sans-image");
+                                  }}
+                                />
+                              ) : (
+                                <span aria-hidden="true">🎲</span>
+                              )}
+                            </div>
+                            <div className="comparaison-titre">
+                              <span
                               className={
                                 groupe.type === "identique"
                                   ? "badge-correspondance identique"
@@ -525,7 +541,8 @@ function App() {
                                 : "⚠ Correspondance probable"}
                             </span>
 
-                            <h3>{groupe.nom}</h3>
+                              <h3>{groupe.nom}</h3>
+                            </div>
                           </div>
 
                           <div className="economie">
@@ -556,26 +573,9 @@ function App() {
                               }
                               key={`${jeu.boutique}-${jeu.id}`}
                             >
-                              <div className="ligne-produit">
-                                <div className="miniature-jeu">
-                                  {jeu.image ? (
-                                    <img
-                                      src={jeu.image}
-                                      alt={`Boîte de ${jeu.nom}`}
-                                      loading="lazy"
-                                      onError={(e) => {
-                                        e.currentTarget.style.display = "none";
-                                        e.currentTarget.parentElement.classList.add("sans-image");
-                                      }}
-                                    />
-                                  ) : (
-                                    <span aria-hidden="true">🎲</span>
-                                  )}
-                                </div>
-                                <div className="ligne-description">
-                                  <strong>{jeu.boutique}</strong>
-                                  <span>{jeu.nom}</span>
-                                </div>
+                              <div className="ligne-description">
+                                <strong>{jeu.boutique}</strong>
+                                <span>{jeu.nom}</span>
                               </div>
 
                               <div className="ligne-tarif">
