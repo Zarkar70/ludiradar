@@ -1,14 +1,15 @@
 
 import { useEffect, useMemo, useState } from "react";
-import { trouverCorrespondances, normaliserNom } from "./gameMatching";
+import { comparerNoms } from "./gameMatching.js";
 import "./App.css";
 
-function formatPrix(prix) {
-  return Number(prix).toLocaleString("fr-FR", {
+const URL_PROMOTIONS = "/promotions.json";
+
+const formaterPrix = (valeur) =>
+  new Intl.NumberFormat("fr-FR", {
     style: "currency",
-    currency: "EUR"
-  });
-}
+    currency: "EUR",
+  }).format(Number(valeur) || 0);
 
 function App() {
   const [promotions, setPromotions] = useState([]);
@@ -19,183 +20,319 @@ function App() {
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState("");
 
-  // Charger les promotions
   useEffect(() => {
-    fetch("/promotions.json")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Impossible de charger les promotions");
+    const controller = new AbortController();
+
+    async function chargerPromotions() {
+      try {
+        const reponse = await fetch(URL_PROMOTIONS, {
+          signal: controller.signal,
+          cache: "no-cache",
+        });
+
+        if (!reponse.ok) {
+          throw new Error("Impossible de charger les promotions.");
         }
 
-        return response.json();
-      })
-      .then((data) => {
-        if (!Array.isArray(data)) {
-          throw new Error("Format des promotions incorrect");
+        const donnees = await reponse.json();
+
+        if (!Array.isArray(donnees)) {
+          throw new Error("Le format des promotions est incorrect.");
         }
 
-        setPromotions(data);
-      })
-      .catch((err) => {
-        setErreur(err.message);
-      })
-      .finally(() => {
-        setChargement(false);
-      });
+        setPromotions(donnees);
+        setErreur("");
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          setErreur(err.message);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setChargement(false);
+        }
+      }
+    }
+
+    chargerPromotions();
+
+    return () => controller.abort();
   }, []);
 
-  // Liste des boutiques
   const boutiques = useMemo(() => {
-    return [
-      "Toutes",
-      ...new Set(promotions.map((jeu) => jeu.boutique))
-    ];
+    const noms = promotions
+      .map((jeu) => jeu.boutique)
+      .filter(Boolean);
+
+    return ["Toutes", ...new Set(noms)].sort((a, b) => {
+      if (a === "Toutes") return -1;
+      if (b === "Toutes") return 1;
+      return a.localeCompare(b, "fr");
+    });
   }, [promotions]);
 
-  // Filtrer et trier les promotions
   const resultats = useMemo(() => {
-    return promotions
-      .filter((jeu) => {
-        const correspondRecherche = normaliserNom(
-          jeu.nom
-        ).includes(normaliserNom(recherche));
+    const terme = recherche.trim().toLocaleLowerCase("fr");
 
-        const correspondBoutique =
-          boutique === "Toutes" ||
-          jeu.boutique === boutique;
+    const offres = promotions.filter((jeu) => {
+      const nom = String(jeu.nom || "").toLocaleLowerCase("fr");
 
-        return correspondRecherche && correspondBoutique;
-      })
-      .sort((a, b) => {
-        if (tri === "prix-croissant") {
-          return Number(a.prix) - Number(b.prix);
-        }
+      const correspondRecherche = nom.includes(terme);
+      const correspondBoutique =
+        boutique === "Toutes" || jeu.boutique === boutique;
 
-        if (tri === "prix-decroissant") {
-          return Number(b.prix) - Number(a.prix);
-        }
+      return correspondRecherche && correspondBoutique;
+    });
 
-        return Number(b.reduction) - Number(a.reduction);
-      });
+    return offres.sort((a, b) => {
+      if (tri === "prix-croissant") {
+        return Number(a.prix) - Number(b.prix);
+      }
+
+      if (tri === "prix-decroissant") {
+        return Number(b.prix) - Number(a.prix);
+      }
+
+      if (tri === "nom") {
+        return String(a.nom).localeCompare(String(b.nom), "fr");
+      }
+
+      return Number(b.reduction) - Number(a.reduction);
+    });
   }, [promotions, recherche, boutique, tri]);
 
-  // Comparateur de prix amélioré
   const comparaisons = useMemo(() => {
-    const correspondances = trouverCorrespondances(promotions);
+    const groupes = [];
+    const jeux = promotions.filter(
+      (jeu) =>
+        jeu.nom &&
+        jeu.boutique &&
+        Number.isFinite(Number(jeu.prix))
+    );
 
-    return correspondances
-      .filter((comparaison) => {
-        const rechercheNormalisee = normaliserNom(recherche);
+    for (const jeu of jeux) {
+      let meilleurGroupe = null;
+      let meilleurScore = 0;
+      let meilleurType = "different";
 
-        return (
-          normaliserNom(comparaison.jeuA.nom).includes(
-            rechercheNormalisee
-          ) ||
-          normaliserNom(comparaison.jeuB.nom).includes(
-            rechercheNormalisee
+      for (const groupe of groupes) {
+        if (
+          groupe.offres.some(
+            (offre) => offre.boutique === jeu.boutique
           )
+        ) {
+          continue;
+        }
+
+        const correspondances = groupe.offres.map((offre) =>
+          comparerNoms(offre.nom, jeu.nom)
         );
-      })
-      .map((comparaison) => {
-        const offres = [
-          comparaison.jeuA,
-          comparaison.jeuB
-        ].sort(
+
+        const correspondance = correspondances.reduce(
+          (meilleure, actuelle) =>
+            Number(actuelle.score) > Number(meilleure.score)
+              ? actuelle
+              : meilleure,
+          { type: "different", score: 0 }
+        );
+
+        const type = correspondance.type;
+        const score = Number(correspondance.score) || 0;
+
+        if (
+          (type === "identique" || type === "probable") &&
+          score > meilleurScore
+        ) {
+          meilleurGroupe = groupe;
+          meilleurScore = score;
+          meilleurType = type;
+        }
+      }
+
+      if (meilleurGroupe) {
+        meilleurGroupe.offres.push(jeu);
+        meilleurGroupe.score = Math.min(
+          meilleurGroupe.score,
+          meilleurScore
+        );
+
+        if (meilleurType === "probable") {
+          meilleurGroupe.type = "probable";
+        }
+      } else {
+        groupes.push({
+          nom: jeu.nom,
+          offres: [jeu],
+          score: 1,
+          type: "identique",
+        });
+      }
+    }
+
+    return groupes
+      .filter(
+        (groupe) =>
+          new Set(groupe.offres.map((jeu) => jeu.boutique))
+            .size >= 2
+      )
+      .map((groupe) => {
+        const offres = [...groupe.offres].sort(
           (a, b) => Number(a.prix) - Number(b.prix)
         );
 
         return {
-          ...comparaison,
-          offres
+          ...groupe,
+          offres,
+          prixMinimum: Number(offres[0].prix),
+          prixMaximum: Number(offres[offres.length - 1].prix),
         };
-      });
-  }, [promotions, recherche]);
+      })
+      .sort(
+        (a, b) =>
+          b.prixMaximum -
+          b.prixMinimum -
+          (a.prixMaximum - a.prixMinimum)
+      );
+  }, [promotions]);
 
-  // Statistiques
-  const nombreBoutiques = new Set(
-    promotions.map((jeu) => jeu.boutique)
-  ).size;
+  const comparaisonsFiltrees = useMemo(() => {
+    const terme = recherche.trim().toLocaleLowerCase("fr");
 
-  const correspondancesExactes = comparaisons.filter(
-    (comparaison) => comparaison.type === "identique"
+    return comparaisons.filter((groupe) =>
+      groupe.offres.some((jeu) =>
+        String(jeu.nom || "")
+          .toLocaleLowerCase("fr")
+          .includes(terme)
+      )
+    );
+  }, [comparaisons, recherche]);
+
+  const nombreIdentiques = comparaisons.filter(
+    (groupe) => groupe.type === "identique"
   ).length;
 
-  const correspondancesProbables = comparaisons.filter(
-    (comparaison) => comparaison.type === "probable"
+  const nombreProbables = comparaisons.filter(
+    (groupe) => groupe.type === "probable"
   ).length;
+
+  const derniereCollecte = promotions
+    .map((jeu) => new Date(jeu.dateCollecte).getTime())
+    .filter(Number.isFinite)
+    .sort((a, b) => b - a)[0];
 
   return (
     <div className="application">
-      {/* EN-TETE */}
       <header className="header">
-        <h1>🎲 LudiRadar</h1>
+        <div className="header-contenu">
+          <div className="marque">
+            <span className="logo-de">🎲</span>
 
-        <p>
-          Les meilleures promotions de jeux de société
-          réunies au même endroit.
-        </p>
-      </header>
+            <h1>
+              Ludi<span>Radar</span>
+            </h1>
 
-      <main className="contenu">
-        {/* PRESENTATION */}
-        <h2>🔥 Les meilleures offres</h2>
+            <span className="badge-beta">BÊTA</span>
+          </div>
 
-        <p>
-          Compare les prix des boutiques spécialisées
-          et trouve tes prochains jeux au meilleur prix.
-        </p>
-
-        {/* STATISTIQUES */}
-        <div className="statistiques">
-          <p>
-            🎲 <strong>{promotions.length}</strong> promotions
+          <p className="sous-titre">
+            Les meilleures promotions de jeux de société,
+            réunies au même endroit.
           </p>
 
+          <div className="header-tags">
+            <span>🔥 Bons plans</span>
+            <span>🎯 Recherche rapide</span>
+            <span>⚖️ Comparaison des prix</span>
+          </div>
+        </div>
+      </header>
+
+      <div className="bandeau-beta">
+        <span className="beta-icone">🚧</span>
+
+        <div>
+          <strong>
+            LudiRadar est en cours de développement
+          </strong>
           <p>
-            🏪 <strong>{nombreBoutiques}</strong> boutiques
+            De nouvelles boutiques et fonctionnalités arrivent
+            progressivement. Certaines offres peuvent évoluer
+            entre deux actualisations. Merci de votre visite !
           </p>
         </div>
 
-        {/* NAVIGATION */}
-        <div
-          style={{
-            display: "flex",
-            gap: "12px",
-            flexWrap: "wrap",
-            margin: "24px 0"
-          }}
-        >
+        <span className="beta-version">VERSION BÊTA</span>
+      </div>
+
+      <main className="contenu">
+        <section className="introduction">
+          <div className="titre-section">
+            <span className="icone-section">🔥</span>
+            <div>
+              <h2>Les meilleures offres</h2>
+              <p>
+                Compare les prix des boutiques spécialisées et
+                trouve tes prochains jeux au meilleur prix.
+              </p>
+            </div>
+          </div>
+
+          <div className="statistiques">
+            <div className="statistique">
+              <span className="stat-icone">🎲</span>
+              <div>
+                <strong>{promotions.length}</strong>
+                <span>promotions</span>
+              </div>
+            </div>
+
+            <div className="statistique">
+              <span className="stat-icone">🏬</span>
+              <div>
+                <strong>{Math.max(0, boutiques.length - 1)}</strong>
+                <span>boutiques</span>
+              </div>
+            </div>
+
+            <div className="statistique">
+              <span className="stat-icone">⚖️</span>
+              <div>
+                <strong>{comparaisons.length}</strong>
+                <span>comparaisons</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="onglets">
           <button
             type="button"
-            className="bouton-offre"
+            className={
+              mode === "promotions"
+                ? "onglet actif"
+                : "onglet"
+            }
             onClick={() => setMode("promotions")}
-            aria-pressed={mode === "promotions"}
-            style={{
-              opacity: mode === "promotions" ? 1 : 0.65,
-              cursor: "pointer"
-            }}
           >
             🔥 Toutes les promotions
           </button>
 
           <button
             type="button"
-            className="bouton-offre"
+            className={
+              mode === "comparateur"
+                ? "onglet actif"
+                : "onglet"
+            }
             onClick={() => setMode("comparateur")}
-            aria-pressed={mode === "comparateur"}
-            style={{
-              opacity: mode === "comparateur" ? 1 : 0.65,
-              cursor: "pointer"
-            }}
           >
             ⚖️ Comparateur de prix
           </button>
         </div>
 
-        {/* FILTRES */}
         <div className="filtres">
           <input
             type="search"
+            aria-label="Rechercher un jeu"
             placeholder="🔍 Rechercher un jeu..."
             value={recherche}
             onChange={(e) => setRecherche(e.target.value)}
@@ -204,6 +341,7 @@ function App() {
           {mode === "promotions" && (
             <>
               <select
+                aria-label="Filtrer par boutique"
                 value={boutique}
                 onChange={(e) => setBoutique(e.target.value)}
               >
@@ -217,344 +355,277 @@ function App() {
               </select>
 
               <select
+                aria-label="Trier les promotions"
                 value={tri}
                 onChange={(e) => setTri(e.target.value)}
               >
                 <option value="reduction">
                   Plus fortes réductions
                 </option>
-
                 <option value="prix-croissant">
                   Prix croissant
                 </option>
-
                 <option value="prix-decroissant">
                   Prix décroissant
+                </option>
+                <option value="nom">
+                  Ordre alphabétique
                 </option>
               </select>
             </>
           )}
         </div>
 
-        {/* CHARGEMENT ET ERREURS */}
         {chargement && (
-          <p>Chargement des promotions...</p>
+          <div className="message-etat">
+            🎲 Chargement des promotions...
+          </div>
         )}
 
         {erreur && (
-          <p>Erreur : {erreur}</p>
+          <div className="message-etat message-erreur">
+            ⚠️ {erreur}
+          </div>
         )}
 
-        {/* LISTE DES PROMOTIONS */}
-        {!chargement &&
-          !erreur &&
-          mode === "promotions" && (
-            <>
-              <p>
-                <strong>{resultats.length}</strong>{" "}
-                offres trouvées
-              </p>
-
-              {resultats.length === 0 && (
-                <p>Aucune promotion trouvée.</p>
-              )}
-
-              <div className="grille">
-                {resultats.map((jeu) => (
-                  <div
-                    className="carte"
-                    key={jeu.id}
-                  >
-                    <span className="reduction">
-                      -{jeu.reduction}%
-                    </span>
-
-                    <div className="illustration">
-                      {jeu.image ? (
-                        <img
-                          src={jeu.image}
-                          alt={jeu.nom}
-                          loading="lazy"
-                          style={{
-                            width: "100%",
-                            height: "170px",
-                            objectFit: "contain"
-                          }}
-                        />
-                      ) : (
-                        "🎲"
-                      )}
-                    </div>
-
-                    <h3>{jeu.nom}</h3>
-
-                    <p className="boutique">
-                      🏪 {jeu.boutique}
-                    </p>
-
-                    <p className="ancien">
-                      {formatPrix(jeu.ancien)}
-                    </p>
-
-                    <p className="prix">
-                      {formatPrix(jeu.prix)}
-                    </p>
-
-                    <a
-                      href={jeu.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bouton-offre"
-                    >
-                      Voir la promotion
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-        {/* COMPARATEUR DE PRIX */}
-        {!chargement &&
-          !erreur &&
-          mode === "comparateur" && (
-            <section>
-              <h2>⚖️ Comparateur de prix</h2>
-
-              <p>
-                Compare les offres de Ludifolie et
-                Philibert pour un même jeu.
-              </p>
-
-              {/* STATISTIQUES COMPARATEUR */}
-              <div
-                style={{
-                  display: "flex",
-                  gap: "20px",
-                  flexWrap: "wrap",
-                  margin: "20px 0"
-                }}
-              >
-                <p>
-                  🔎 <strong>
-                    {comparaisons.length}
-                  </strong>{" "}
-                  correspondances détectées
-                </p>
-
-                <p>
-                  ✅ <strong>
-                    {correspondancesExactes}
-                  </strong>{" "}
-                  titres identiques
-                </p>
-
-                <p>
-                  ⚠️ <strong>
-                    {correspondancesProbables}
-                  </strong>{" "}
-                  correspondances probables
-                </p>
-              </div>
-
-              {comparaisons.length === 0 && (
-                <div
-                  style={{
-                    background: "#ffffff",
-                    padding: "30px",
-                    borderRadius: "12px",
-                    marginTop: "20px"
-                  }}
-                >
-                  <h3>
-                    🎲 Aucun jeu commun détecté
-                  </h3>
-
-                  <p>
-                    Pour le moment, aucun jeu en promotion
-                    n'a été reconnu dans plusieurs boutiques.
-                  </p>
-
-                  <p>
-                    Le comparateur recherchera automatiquement
-                    de nouvelles correspondances lors des
-                    prochaines actualisations des promotions.
-                  </p>
+        {!chargement && !erreur && (
+          <>
+            {mode === "promotions" ? (
+              <section className="section-offres">
+                <div className="resultats-entete">
+                  <h2>🎮 Les bons plans du moment</h2>
+                  <span>
+                    {resultats.length} offre
+                    {resultats.length > 1 ? "s" : ""} trouvée
+                    {resultats.length > 1 ? "s" : ""}
+                  </span>
                 </div>
-              )}
 
-              {/* CARTES DE COMPARAISON */}
-              <div className="grille">
-                {comparaisons.map((comparaison) => {
-                  const offres = comparaison.offres;
-
-                  const meilleur = offres[0];
-                  const plusCher = offres[offres.length - 1];
-
-                  const economie =
-                    Number(plusCher.prix) -
-                    Number(meilleur.prix);
-
-                  const estIdentique =
-                    comparaison.type === "identique";
-
-                  return (
-                    <div
-                      className="carte"
-                      key={
-                        `${comparaison.jeuA.id}-` +
-                        `${comparaison.jeuB.id}`
-                      }
-                    >
-                      {/* IMAGE */}
-                      <div className="illustration">
-                        {meilleur.image ? (
-                          <img
-                            src={meilleur.image}
-                            alt={meilleur.nom}
-                            loading="lazy"
-                            style={{
-                              width: "100%",
-                              height: "170px",
-                              objectFit: "contain"
-                            }}
-                          />
-                        ) : (
-                          "🎲"
-                        )}
-                      </div>
-
-                      {/* NOM */}
-                      <h3>{meilleur.nom}</h3>
-
-                      {/* NIVEAU DE CORRESPONDANCE */}
-                      <p
-                        style={{
-                          color: estIdentique
-                            ? "#15803d"
-                            : "#a16207",
-                          fontWeight: "bold"
-                        }}
+                {resultats.length === 0 ? (
+                  <div className="message-etat">
+                    🔍 Aucun jeu ne correspond à ta recherche.
+                  </div>
+                ) : (
+                  <div className="grille">
+                    {resultats.map((jeu) => (
+                      <article
+                        className="carte"
+                        key={`${jeu.boutique}-${jeu.id}`}
                       >
-                        {estIdentique
-                          ? "✓ Même titre détecté"
-                          : "⚠ Correspondance probable — à vérifier"}
-                      </p>
+                        <div className="carte-image">
+                          <span className="reduction">
+                            -{jeu.reduction}%
+                          </span>
 
-                      <p>
-                        🏪 {offres.length} boutiques
-                      </p>
-
-                      <p className="prix">
-                        Dès {formatPrix(meilleur.prix)}
-                      </p>
-
-                      {/* PRIX PAR BOUTIQUE */}
-                      {offres.map((offre, index) => (
-                        <div
-                          key={offre.id}
-                          style={{
-                            borderTop: "1px solid #ddd",
-                            padding: "12px 0"
-                          }}
-                        >
-                          <strong>
-                            {offre.boutique}
-                          </strong>
-
-                          {index === 0 && (
-                            <span
-                              style={{
-                                marginLeft: "8px",
-                                color: "#15803d",
-                                fontWeight: "bold"
-                              }}
-                            >
-                              ✓ Prix le plus bas
+                          {jeu.image ? (
+                            <img
+                              src={jeu.image}
+                              alt={jeu.nom}
+                              loading="lazy"
+                            />
+                          ) : (
+                            <span className="image-absente">
+                              🎲
                             </span>
                           )}
+                        </div>
 
-                          <p
-                            style={{
-                              fontSize: "20px",
-                              fontWeight: "bold",
-                              margin: "10px 0"
-                            }}
-                          >
-                            {formatPrix(offre.prix)}
-                          </p>
+                        <div className="carte-contenu">
+                          <span className="boutique">
+                            🏬 {jeu.boutique}
+                          </span>
+
+                          <h3>{jeu.nom}</h3>
+
+                          <div className="bloc-prix">
+                            <span className="ancien">
+                              {formaterPrix(jeu.ancien)}
+                            </span>
+
+                            <strong className="prix">
+                              {formaterPrix(jeu.prix)}
+                            </strong>
+                          </div>
 
                           <a
-                            href={offre.url}
+                            href={jeu.url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="bouton-offre"
                           >
-                            Voir chez {offre.boutique}
+                            Voir l'offre
+                            <span aria-hidden="true">↗</span>
                           </a>
                         </div>
-                      ))}
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
+            ) : (
+              <section className="section-comparateur">
+                <div className="resultats-entete">
+                  <div>
+                    <h2>⚖️ Comparateur de prix</h2>
+                    <p>
+                      Compare les offres d'un même jeu dans
+                      plusieurs boutiques.
+                    </p>
+                  </div>
+                </div>
 
-                      {/* ECONOMIE */}
-                      {economie > 0 && (
-                        <div
-                          style={{
-                            background: "#ecfdf5",
-                            borderRadius: "10px",
-                            padding: "14px",
-                            marginTop: "16px"
-                          }}
-                        >
-                          <p
-                            style={{
-                              color: "#15803d",
-                              fontWeight: "bold",
-                              margin: 0
-                            }}
-                          >
-                            💰 Écart de prix :{" "}
-                            {formatPrix(economie)}
-                          </p>
+                <div className="stats-comparateur">
+                  <span>
+                    🔎 {comparaisonsFiltrees.length} correspondance
+                    {comparaisonsFiltrees.length > 1 ? "s" : ""}
+                  </span>
+                  <span>
+                    ✅ {nombreIdentiques} titre
+                    {nombreIdentiques > 1 ? "s" : ""} identique
+                    {nombreIdentiques > 1 ? "s" : ""}
+                  </span>
+                  <span>
+                    ⚠️ {nombreProbables} correspondance
+                    {nombreProbables > 1 ? "s" : ""} probable
+                    {nombreProbables > 1 ? "s" : ""}
+                  </span>
+                </div>
 
-                          {!estIdentique && (
-                            <p
-                              style={{
-                                fontSize: "12px",
-                                color: "#92400e",
-                                marginBottom: 0
-                              }}
+                {comparaisonsFiltrees.length === 0 ? (
+                  <div className="message-etat">
+                    <h3>🎲 Aucun jeu commun détecté</h3>
+                    <p>
+                      Pour le moment, aucun jeu en promotion
+                      n'a été reconnu dans plusieurs boutiques.
+                    </p>
+                    <p>
+                      Le comparateur recherchera de nouvelles
+                      correspondances lors des prochaines
+                      actualisations.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="liste-comparaisons">
+                    {comparaisonsFiltrees.map((groupe, index) => (
+                      <article
+                        className="comparaison"
+                        key={`${groupe.nom}-${index}`}
+                      >
+                        <div className="comparaison-entete">
+                          <div>
+                            <span
+                              className={
+                                groupe.type === "identique"
+                                  ? "badge-correspondance identique"
+                                  : "badge-correspondance probable"
+                              }
                             >
-                              Vérifiez qu'il s'agit
-                              bien de la même édition
-                              avant de comparer les prix.
-                            </p>
-                          )}
+                              {groupe.type === "identique"
+                                ? "✓ Titres identiques"
+                                : "⚠ Correspondance probable"}
+                            </span>
+
+                            <h3>{groupe.nom}</h3>
+                          </div>
+
+                          <div className="economie">
+                            <span>Écart de prix</span>
+                            <strong>
+                              {formaterPrix(
+                                groupe.prixMaximum -
+                                  groupe.prixMinimum
+                              )}
+                            </strong>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          )}
+
+                        {groupe.type === "probable" && (
+                          <p className="avertissement">
+                            Vérifie qu'il s'agit bien de la
+                            même édition avant d'acheter.
+                          </p>
+                        )}
+
+                        <div className="comparaison-offres">
+                          {groupe.offres.map((jeu, i) => (
+                            <div
+                              className={
+                                i === 0
+                                  ? "ligne-offre meilleur-prix"
+                                  : "ligne-offre"
+                              }
+                              key={`${jeu.boutique}-${jeu.id}`}
+                            >
+                              <div className="ligne-description">
+                                <strong>{jeu.boutique}</strong>
+                                <span>{jeu.nom}</span>
+                              </div>
+
+                              <div className="ligne-tarif">
+                                {i === 0 && (
+                                  <span className="etiquette-meilleur">
+                                    Meilleur prix
+                                  </span>
+                                )}
+                                <strong>
+                                  {formaterPrix(jeu.prix)}
+                                </strong>
+                              </div>
+
+                              <a
+                                href={jeu.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="lien-comparaison"
+                              >
+                                Voir l'offre ↗
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+          </>
+        )}
       </main>
 
-      {/* PIED DE PAGE */}
-      <footer>
-        <p>
-          © 2026 LudiRadar — Comparateur de promotions
-        </p>
+      <footer className="footer">
+        <div className="footer-contenu">
+          <div className="footer-marque">
+            <strong>🎲 LudiRadar</strong>
+            <span className="footer-beta">BÊTA</span>
+          </div>
 
-        <p>
-          Prix relevés lors de la dernière collecte.
-          Vérifiez les tarifs sur le site marchand.
-        </p>
+          <p>
+            © {new Date().getFullYear()} LudiRadar —
+            Comparateur de promotions de jeux de société.
+          </p>
 
-        <p>
-          Les correspondances entre jeux sont établies
-          automatiquement à partir de leurs noms.
-          Vérifiez les éditions et les versions linguistiques.
-        </p>
+          <p>
+            Site en cours de développement. Les prix et
+            disponibilités sont donnés à titre indicatif.
+            Vérifiez toujours les informations sur le site
+            marchand.
+          </p>
+
+          {derniereCollecte && (
+            <p className="date-collecte">
+              Dernier relevé :
+              {" "}
+              {new Date(derniereCollecte).toLocaleString(
+                "fr-FR",
+                {
+                  dateStyle: "long",
+                  timeStyle: "short",
+                }
+              )}
+            </p>
+          )}
+        </div>
       </footer>
     </div>
   );
