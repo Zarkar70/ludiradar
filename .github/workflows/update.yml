@@ -1,0 +1,35 @@
+
+name: LudiRadar - Actualisation
+
+on:
+  workflow_dispatch:
+  # Activation future après autorisation :
+  # schedule:
+  #   - cron: "17 */6 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  verification:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le projet
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer les bibliotheques
+        run: |
+          python -m pip install requests beautifulsoup4
+
+      - name: Verifier les promotions existantes
+        run: |
+          python -c "import json; from pathlib import Path; p=Path('public/promotions.json'); data=json.loads(p.read_text(encoding='utf-8')); assert isinstance(data,list) and len(data)>0; print(f'{len(data)} promotions disponibles')"
+
+      - name: Terminer
+        run: echo "LudiRadar est pret pour l'automatisation"
