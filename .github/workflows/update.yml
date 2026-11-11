@@ -1,11 +1,17 @@
 
-name: LudiRadar - Actualisation
+name: LudiRadar - Actualisation automatique
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
 
 permissions:
   contents: write
+
+concurrency:
+  group: ludiradar-actualisation
+  cancel-in-progress: false
 
 jobs:
   actualisation:
@@ -24,17 +30,26 @@ jobs:
         run: |
           python -m pip install requests beautifulsoup4
 
-      - name: Verifier les promotions existantes
-        run: |
-          python -c "import json; from pathlib import Path; p = Path('public/promotions.json'); offres = json.loads(p.read_text(encoding='utf-8')); assert isinstance(offres, list) and len(offres) > 0, 'Aucune promotion'; print(f'{len(offres)} promotions verifiees')"
+      - name: Collecter les promotions Ludifolie
+        run: python scripts/collect.py
 
-      # La collecte automatique sera activee apres
-      # verification des autorisations de la boutique.
-      #
-      # - name: Collecter les promotions
-      #   run: python scripts/collect.py
+      - name: Collecter les promotions Philibert
+        run: python scripts/collect_philibert.py
 
-      - name: Verifier les modifications
+      - name: Verifier le fichier JSON
         run: |
-          git status --short
-          echo "Verification terminee"
+          python -c "import json; from pathlib import Path; offres=json.loads(Path('public/promotions.json').read_text(encoding='utf-8')); assert isinstance(offres,list) and len(offres)>0; print(f'{len(offres)} promotions verifiees')"
+
+      - name: Enregistrer les modifications
+        run: |
+          git config user.name "LudiRadar Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add public/promotions.json
+
+          if git diff --cached --quiet; then
+            echo "Aucune modification"
+          else
+            git commit -m "Actualisation automatique des promotions"
+            git push
+          fi
