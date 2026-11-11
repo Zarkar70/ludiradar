@@ -39,6 +39,9 @@ jobs:
       - name: Collecter les promotions Esprit Jeu
         run: python scripts/collect_espritjeu.py
 
+      - name: Collecter les promotions L'Antre Temps
+        run: python scripts/collect_antretemps.py
+
       - name: Verifier le fichier JSON
         run: |
           python -c "import json; from pathlib import Path; offres=json.loads(Path('public/promotions.json').read_text(encoding='utf-8')); assert isinstance(offres,list) and len(offres)>0; print(f'{len(offres)} promotions verifiees')"
