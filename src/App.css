@@ -1008,3 +1008,56 @@ a {
     max-height: 165px;
   }
 }
+
+/* MINIATURES DES BOITES DANS LE COMPARATEUR */
+.ligne-produit {
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+  gap: 15px;
+}
+
+.miniature-jeu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 82px;
+  flex: 0 0 68px;
+  padding: 5px;
+  overflow: hidden;
+  border: 1px solid #e9e2f5;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.miniature-jeu img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+.miniature-jeu > span,
+.miniature-jeu.sans-image::after {
+  font-size: 27px;
+}
+
+.miniature-jeu.sans-image::after {
+  content: "🎲";
+}
+
+@media (max-width: 580px) {
+  .ligne-produit {
+    flex: 1 1 100%;
+    gap: 11px;
+  }
+
+  .miniature-jeu {
+    width: 56px;
+    height: 70px;
+    flex-basis: 56px;
+  }
+}

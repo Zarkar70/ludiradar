@@ -556,9 +556,26 @@ function App() {
                               }
                               key={`${jeu.boutique}-${jeu.id}`}
                             >
-                              <div className="ligne-description">
-                                <strong>{jeu.boutique}</strong>
-                                <span>{jeu.nom}</span>
+                              <div className="ligne-produit">
+                                <div className="miniature-jeu">
+                                  {jeu.image ? (
+                                    <img
+                                      src={jeu.image}
+                                      alt={`Boîte de ${jeu.nom}`}
+                                      loading="lazy"
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = "none";
+                                        e.currentTarget.parentElement.classList.add("sans-image");
+                                      }}
+                                    />
+                                  ) : (
+                                    <span aria-hidden="true">🎲</span>
+                                  )}
+                                </div>
+                                <div className="ligne-description">
+                                  <strong>{jeu.boutique}</strong>
+                                  <span>{jeu.nom}</span>
+                                </div>
                               </div>
 
                               <div className="ligne-tarif">
