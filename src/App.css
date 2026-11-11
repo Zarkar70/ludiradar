@@ -1,0 +1,166 @@
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f3f6fa;
+  color: #172b4d;
+}
+
+.application {
+  min-height: 100vh;
+}
+
+.header {
+  background: linear-gradient(120deg, #10233f, #145b64);
+  color: white;
+  padding: 55px 20px;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 42px;
+  margin: 0 0 15px;
+}
+
+.header p {
+  color: #d6e5ec;
+}
+
+.contenu {
+  max-width: 1200px;
+  margin: auto;
+  padding: 35px 20px;
+}
+
+.contenu h2 {
+  font-size: 28px;
+}
+
+.filtres {
+  display: flex;
+  gap: 15px;
+  margin: 30px 0;
+}
+
+.filtres input,
+.filtres select {
+  padding: 15px;
+  border: 1px solid #dce2ea;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.filtres input {
+  flex: 1;
+  min-width: 0;
+}
+
+.grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.carte {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 5px 20px #0000000c;
+  transition: transform 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.carte:hover {
+  transform: translateY(-5px);
+}
+
+.reduction {
+  align-self: flex-start;
+  background: #dcfce7;
+  color: #15803d;
+  font-weight: bold;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.illustration {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 220px;
+  padding: 20px;
+}
+
+.illustration img {
+  max-width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+}
+
+.carte h3 {
+  margin: 12px 0 8px;
+  font-size: 19px;
+}
+
+.boutique {
+  color: #64748b;
+}
+
+.ancien {
+  color: #94a3b8;
+  text-decoration: line-through;
+  margin-bottom: 0;
+}
+
+.prix {
+  font-size: 27px;
+  color: #059669;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.bouton-offre {
+  display: block;
+  margin-top: auto;
+  background: #102d4b;
+  color: white;
+  text-decoration: none;
+  text-align: center;
+  padding: 13px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.bouton-offre:hover {
+  background: #145b64;
+}
+
+footer {
+  text-align: center;
+  padding: 30px;
+  color: #64748b;
+}
+
+@media (max-width: 600px) {
+  .filtres {
+    flex-direction: column;
+  }
+
+  .header h1 {
+    font-size: 32px;
+  }
+
+  .grille {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  .carte {
+    padding: 14px;
+  }
+}
