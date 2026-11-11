@@ -6,6 +6,7 @@ function App() {
   const [promotions, setPromotions] = useState([]);
   const [recherche, setRecherche] = useState("");
   const [boutique, setBoutique] = useState("Toutes");
+  const [tri, setTri] = useState("reduction");
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState("");
 
@@ -18,6 +19,10 @@ function App() {
         return response.json();
       })
       .then((data) => {
+        if (!Array.isArray(data)) {
+          throw new Error("Format des promotions incorrect");
+        }
+
         setPromotions(data);
         setChargement(false);
       })
@@ -32,26 +37,60 @@ function App() {
     ...new Set(promotions.map((jeu) => jeu.boutique))
   ];
 
-  const resultats = promotions.filter((jeu) => {
-    return (
-      jeu.nom.toLowerCase().includes(recherche.toLowerCase()) &&
-      (boutique === "Toutes" || jeu.boutique === boutique)
-    );
-  });
+  const resultats = promotions
+    .filter((jeu) => {
+      const correspondRecherche = jeu.nom
+        .toLowerCase()
+        .includes(recherche.toLowerCase());
+
+      const correspondBoutique =
+        boutique === "Toutes" || jeu.boutique === boutique;
+
+      return correspondRecherche && correspondBoutique;
+    })
+    .sort((a, b) => {
+      if (tri === "prix-croissant") {
+        return a.prix - b.prix;
+      }
+
+      if (tri === "prix-decroissant") {
+        return b.prix - a.prix;
+      }
+
+      return b.reduction - a.reduction;
+    });
+
+  const nombreBoutiques = new Set(
+    promotions.map((jeu) => jeu.boutique)
+  ).size;
 
   return (
     <div className="application">
       <header className="header">
         <h1>🎲 LudiRadar</h1>
         <p>
-          Toutes les meilleures promotions de jeux de société
-          au même endroit.
+          Les meilleures promotions de jeux de société
+          réunies au même endroit.
         </p>
       </header>
 
       <main className="contenu">
         <h2>🔥 Les meilleures offres</h2>
-        <p>Compare les promotions des boutiques spécialisées.</p>
+
+        <p>
+          Compare les prix des boutiques spécialisées
+          et trouve tes prochains jeux au meilleur prix.
+        </p>
+
+        <div className="statistiques">
+          <p>
+            🎲 <strong>{promotions.length}</strong> promotions
+          </p>
+
+          <p>
+            🏪 <strong>{nombreBoutiques}</strong> boutiques
+          </p>
+        </div>
 
         <div className="filtres">
           <input
@@ -67,18 +106,48 @@ function App() {
           >
             {boutiques.map((nom) => (
               <option key={nom} value={nom}>
-                {nom}
+                {nom === "Toutes"
+                  ? "Toutes les boutiques"
+                  : nom}
               </option>
             ))}
           </select>
+
+          <select
+            value={tri}
+            onChange={(e) => setTri(e.target.value)}
+          >
+            <option value="reduction">
+              Plus fortes réductions
+            </option>
+            <option value="prix-croissant">
+              Prix croissant
+            </option>
+            <option value="prix-decroissant">
+              Prix décroissant
+            </option>
+          </select>
         </div>
 
-        {chargement && <p>Chargement des promotions...</p>}
-        {erreur && <p>Erreur : {erreur}</p>}
+        {chargement && (
+          <p>Chargement des promotions...</p>
+        )}
+
+        {erreur && (
+          <p>Erreur : {erreur}</p>
+        )}
 
         {!chargement && !erreur && (
           <>
-            <p>{resultats.length} offres trouvées</p>
+            <p>
+              <strong>{resultats.length}</strong> offres trouvées
+            </p>
+
+            {resultats.length === 0 && (
+              <p>
+                Aucune promotion ne correspond à ta recherche.
+              </p>
+            )}
 
             <div className="grille">
               {resultats.map((jeu) => (
@@ -106,14 +175,16 @@ function App() {
 
                   <h3>{jeu.nom}</h3>
 
-                  <p className="boutique">{jeu.boutique}</p>
+                  <p className="boutique">
+                    🏪 {jeu.boutique}
+                  </p>
 
                   <p className="ancien">
-                    {jeu.ancien.toFixed(2)} €
+                    {Number(jeu.ancien).toFixed(2)} €
                   </p>
 
                   <p className="prix">
-                    {jeu.prix.toFixed(2)} €
+                    {Number(jeu.prix).toFixed(2)} €
                   </p>
 
                   <a
@@ -132,7 +203,9 @@ function App() {
       </main>
 
       <footer>
-        <p>© 2026 LudiRadar — Comparateur de promotions</p>
+        <p>
+          © 2026 LudiRadar — Comparateur de promotions
+        </p>
         <p>
           Prix relevés lors de la dernière collecte.
           Vérifiez les tarifs sur le site marchand.
