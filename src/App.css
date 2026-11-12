@@ -1129,3 +1129,36 @@ a {
     flex-basis: 58px;
   }
 }
+
+/* Prix de reference et economies estimees */
+.reference-prix {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 11px;
+  background: #f6f1ff;
+  color: #51436e;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.reference-prix strong { color: #38205f; }
+.reference-prix .gain-prix { color: #166534; font-weight: 800; }
+.resume-reference {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 17px 23px;
+  border-top: 1px solid #e8e0f8;
+  background: #f8f5ff;
+}
+.resume-reference > div { display: flex; flex-direction: column; gap: 7px; }
+.resume-reference span { color: #65718c; font-size: 12px; line-height: 1.4; }
+.resume-reference strong { color: #6427cb; font-size: 19px; }
+.resume-reference .resume-gain strong { color: #166534; }
+@media (max-width: 700px) {
+  .resume-reference { grid-template-columns: 1fr; padding: 15px; }
+  .resume-reference > div { padding-bottom: 9px; border-bottom: 1px solid #e8e0f8; }
+  .reference-prix { padding: 9px; font-size: 11px; }
+}

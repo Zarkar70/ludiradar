@@ -11,6 +11,27 @@ const formaterPrix = (valeur) =>
     currency: "EUR",
   }).format(Number(valeur) || 0);
 
+// Les anciens prix sont des prix barres declares par les marchands,
+// et non une moyenne historique du marche.
+const prixValide = (valeur) => {
+  if (valeur === null || valeur === undefined || valeur === "") return null;
+  const nombre = Number(valeur);
+  return Number.isFinite(nombre) && nombre > 0 ? nombre : null;
+};
+
+const calculerReference = (offres) => {
+  const anciensPrix = offres.map((offre) => prixValide(offre.ancien)).filter((prix) => prix !== null);
+  if (!anciensPrix.length) return null;
+  return anciensPrix.reduce((total, prix) => total + prix, 0) / anciensPrix.length;
+};
+
+const calculerEconomie = (reference, prix) => {
+  const prixActuel = prixValide(prix);
+  if (reference === null || prixActuel === null) return null;
+  const montant = Math.max(0, reference - prixActuel);
+  return { montant, pourcentage: Math.round((montant / reference) * 100) };
+};
+
 function App() {
   const [promotions, setPromotions] = useState([]);
   const [recherche, setRecherche] = useState("");
@@ -210,6 +231,7 @@ function App() {
           offres,
           prixMinimum: Number(offres[0].prix),
           prixMaximum: Number(offres[offres.length - 1].prix),
+          prixMoyenHorsPromotion: calculerReference(offres),
         };
       })
       .sort(
@@ -219,6 +241,18 @@ function App() {
           (a.prixMaximum - a.prixMinimum)
       );
   }, [promotions]);
+
+  // Associer les offres du catalogue aux groupes deja reconnus par le comparateur.
+  const referencesParOffre = useMemo(() => {
+    const references = new Map();
+    for (const groupe of comparaisons) {
+      if (groupe.prixMoyenHorsPromotion === null) continue;
+      for (const offre of groupe.offres) {
+        references.set(`${offre.boutique}-${offre.id}`, groupe.prixMoyenHorsPromotion);
+      }
+    }
+    return references;
+  }, [comparaisons]);
 
   const comparaisonsFiltrees = useMemo(() => {
     const terme = recherche.trim().toLocaleLowerCase("fr");
@@ -480,6 +514,19 @@ function App() {
                             <strong className="prix">
                               {formaterPrix(jeu.prix)}
                             </strong>
+                          {(() => {
+                              const cle = `${jeu.boutique}-${jeu.id}`;
+                              const moyenne = referencesParOffre.get(cle);
+                              const reference = moyenne ?? prixValide(jeu.ancien);
+                              const economie = calculerEconomie(reference, jeu.prix);
+                              if (reference === null || economie === null) return null;
+                              return (
+                                <div className="reference-prix">
+                                  <span>{moyenne !== undefined ? "Prix moyen hors promotion (boutiques comparées)" : "Prix barré de cette boutique"} : <strong>{formaterPrix(reference)}</strong></span>
+                                  <span className="gain-prix">Économie estimée : {formaterPrix(economie.montant)} ({economie.pourcentage} %)</span>
+                                </div>
+                              );
+                            })()}
                           </div>
 
                           <a
@@ -581,7 +628,7 @@ function App() {
                           </div>
 
                           <div className="economie">
-                            <span>Écart de prix</span>
+                            <span>Écart entre les boutiques</span>
                             <strong>
                               {formaterPrix(
                                 groupe.prixMaximum -
@@ -589,6 +636,19 @@ function App() {
                               )}
                             </strong>
                           </div>
+                        </div>
+
+                        
+                        <div className="resume-reference">
+                          {groupe.prixMoyenHorsPromotion !== null ? (
+                            <>
+                              <div><span>Prix moyen hors promotion (prix barrés)</span><strong>{formaterPrix(groupe.prixMoyenHorsPromotion)}</strong></div>
+                              <div><span>Meilleur prix actuel</span><strong>{formaterPrix(groupe.prixMinimum)}</strong></div>
+                              <div className="resume-gain"><span>Économie estimée par rapport à la moyenne</span><strong>{formaterPrix(calculerEconomie(groupe.prixMoyenHorsPromotion, groupe.prixMinimum).montant)} ({calculerEconomie(groupe.prixMoyenHorsPromotion, groupe.prixMinimum).pourcentage} %)</strong></div>
+                            </>
+                          ) : (
+                            <p>Prix moyen hors promotion indisponible.</p>
+                          )}
                         </div>
 
                         {groupe.type === "probable" && (
