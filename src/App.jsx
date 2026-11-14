@@ -5,6 +5,8 @@ import "./App.css";
 import { cheminJeu } from "./seoRoutes.js";
 
 const URL_PROMOTIONS = "/promotions.json";
+const JEUX_PAR_PAGE = 24;
+const JEUX_ACCUEIL = 12;
 
 const formaterPrix = (valeur) =>
   new Intl.NumberFormat("fr-FR", {
@@ -34,14 +36,14 @@ const calculerEconomie = (reference, prix) => {
 };
 
 function App() {
-  const [chemin, setChemin] = useState(window.location.pathname);
+  const [chemin, setChemin] = useState(window.location.pathname + window.location.search);
   const naviguer = (nouveauChemin) => {
     window.history.pushState({}, "", nouveauChemin);
     setChemin(nouveauChemin);
     window.scrollTo(0, 0);
   };
   useEffect(() => {
-    const ecouter = () => setChemin(window.location.pathname);
+    const ecouter = () => setChemin(window.location.pathname + window.location.search);
     window.addEventListener("popstate", ecouter);
     return () => window.removeEventListener("popstate", ecouter);
   }, []);
@@ -49,7 +51,9 @@ function App() {
   const [recherche, setRecherche] = useState("");
   const [boutique, setBoutique] = useState("Toutes");
   const [tri, setTri] = useState("reduction");
-  const [mode, setMode] = useState(window.location.pathname.startsWith("/comparateur") ? "comparateur" : "promotions");
+  const accueil = chemin === "/" || chemin === "";
+  const mode = chemin.startsWith("/comparateur") ? "comparateur" : "promotions";
+  const pageDemandee = Number(new URLSearchParams(chemin.split("?")[1] || "").get("page") || 1);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState("");
 
@@ -189,6 +193,38 @@ function App() {
       return Number(b.reduction) - Number(a.reduction);
     });
   }, [promotions, recherche, boutique, tri]);
+
+  const promotionsAccueil = useMemo(() => {
+    const nomsVus = new Set();
+    return [...promotions]
+      .filter((jeu) => jeu.nom && prixValide(jeu.prix) !== null)
+      .sort((a, b) => Number(b.reduction || 0) - Number(a.reduction || 0))
+      .filter((jeu) => {
+        const nom = String(jeu.nom).trim().toLocaleLowerCase("fr");
+        if (nomsVus.has(nom)) return false;
+        nomsVus.add(nom);
+        return true;
+      })
+      .slice(0, JEUX_ACCUEIL);
+  }, [promotions]);
+
+  const nombrePages = Math.max(1, Math.ceil(resultats.length / JEUX_PAR_PAGE));
+  const pageActuelle = Number.isInteger(pageDemandee) && pageDemandee > 0
+    ? Math.min(pageDemandee, nombrePages)
+    : 1;
+  const offresAffichees = accueil
+    ? promotionsAccueil
+    : resultats.slice((pageActuelle - 1) * JEUX_PAR_PAGE, pageActuelle * JEUX_PAR_PAGE);
+  const allerPage = (page) => {
+    if (page < 1 || page > nombrePages) return;
+    naviguer(page === 1 ? "/promotions/" : `/promotions/?page=${page}`);
+  };
+  const reinitialiserPage = () => {
+    if (!accueil && mode === "promotions" && chemin.includes("?page=")) {
+      window.history.replaceState({}, "", "/promotions/");
+      setChemin("/promotions/");
+    }
+  };
 
   const comparaisons = useMemo(() => {
     const groupes = [];
@@ -377,14 +413,14 @@ function App() {
 
       <nav className="seo-navigation" aria-label="Navigation principale">
         <a href="/" onClick={(e) => { e.preventDefault(); naviguer("/"); }}>Accueil</a>
-        <a href="/promotions/" onClick={(e) => { e.preventDefault(); setMode("promotions"); naviguer("/promotions/"); }}>Promotions</a>
-        <a href="/comparateur/" onClick={(e) => { e.preventDefault(); setMode("comparateur"); naviguer("/comparateur/"); }}>Comparateur</a>
+        <a href="/promotions/" onClick={(e) => { e.preventDefault(); naviguer("/promotions/"); }}>Promotions</a>
+        <a href="/comparateur/" onClick={(e) => { e.preventDefault(); naviguer("/comparateur/"); }}>Comparateur</a>
       </nav>
       {pageJeu ? (
         <main className="contenu">
           {chargement ? <p>Chargement du jeu…</p> : jeuSelectionne ? (
             <article className="fiche-jeu">
-              <a href="/promotions/" onClick={(e) => { e.preventDefault(); setMode("promotions"); naviguer("/promotions/"); }}>← Retour aux promotions</a>
+              <a href="/promotions/" onClick={(e) => { e.preventDefault(); naviguer("/promotions/"); }}>← Retour aux promotions</a>
               <h2>{jeuSelectionne.nom}</h2>
               {jeuSelectionne.image && <img src={jeuSelectionne.image} alt={`Boîte du jeu ${jeuSelectionne.nom}`} />}
               <p>Offre proposée par {jeuSelectionne.boutique}</p>
@@ -435,7 +471,19 @@ function App() {
           </div>
         </section>
 
-        <div className="onglets">
+        {accueil && (
+          <div className="accueil-intro">
+            <div>
+              <span className="accueil-eyebrow">🎲 Sélection LudiRadar</span>
+              <h2>Les bons plans à découvrir</h2>
+              <p>Une sélection de 12 jeux en promotion, sans parcourir tout le catalogue.</p>
+            </div>
+            <a href="/promotions/" className="accueil-cta" onClick={(e) => { e.preventDefault(); naviguer("/promotions/"); }}>
+              Explorer toutes les promotions ↗
+            </a>
+          </div>
+        )}
+        {!accueil && <div className="onglets">
           <button
             type="button"
             className={
@@ -443,7 +491,7 @@ function App() {
                 ? "onglet actif"
                 : "onglet"
             }
-            onClick={() => { setMode("promotions"); naviguer("/promotions/"); }}
+            onClick={() => { naviguer("/promotions/"); }}
           >
             🔥 Toutes les promotions
           </button>
@@ -455,19 +503,19 @@ function App() {
                 ? "onglet actif"
                 : "onglet"
             }
-            onClick={() => { setMode("comparateur"); naviguer("/comparateur/"); }}
+            onClick={() => { naviguer("/comparateur/"); }}
           >
             ⚖️ Comparateur de prix
           </button>
-        </div>
+        </div>}
 
-        <div className="filtres">
+        {!accueil && <div className="filtres">
           <input
             type="search"
             aria-label="Rechercher un jeu"
             placeholder="🔍 Rechercher un jeu..."
             value={recherche}
-            onChange={(e) => setRecherche(e.target.value)}
+            onChange={(e) => { setRecherche(e.target.value); reinitialiserPage(); }}
           />
 
           {mode === "promotions" && (
@@ -475,7 +523,7 @@ function App() {
               <select
                 aria-label="Filtrer par boutique"
                 value={boutique}
-                onChange={(e) => setBoutique(e.target.value)}
+                onChange={(e) => { setBoutique(e.target.value); reinitialiserPage(); }}
               >
                 {boutiques.map((nom) => (
                   <option key={nom} value={nom}>
@@ -489,7 +537,7 @@ function App() {
               <select
                 aria-label="Trier les promotions"
                 value={tri}
-                onChange={(e) => setTri(e.target.value)}
+                onChange={(e) => { setTri(e.target.value); reinitialiserPage(); }}
               >
                 <option value="reduction">
                   Plus fortes réductions
@@ -506,7 +554,7 @@ function App() {
               </select>
             </>
           )}
-        </div>
+        </div>}
 
         {chargement && (
           <div className="message-etat">
@@ -522,24 +570,22 @@ function App() {
 
         {!chargement && !erreur && (
           <>
-            {mode === "promotions" ? (
+            {accueil || mode === "promotions" ? (
               <section className="section-offres">
                 <div className="resultats-entete">
-                  <h2>🎮 Les bons plans du moment</h2>
+                  <h2>{accueil ? "🔥 Notre sélection du moment" : "🎮 Toutes les promotions"}</h2>
                   <span>
-                    {resultats.length} offre
-                    {resultats.length > 1 ? "s" : ""} trouvée
-                    {resultats.length > 1 ? "s" : ""}
+                    {accueil ? offresAffichees.length : resultats.length} offre{(accueil ? offresAffichees.length : resultats.length) > 1 ? "s" : ""}
                   </span>
                 </div>
 
-                {resultats.length === 0 ? (
+                {offresAffichees.length === 0 ? (
                   <div className="message-etat">
                     🔍 Aucun jeu ne correspond à ta recherche.
                   </div>
                 ) : (
                   <div className="grille">
-                    {resultats.map((jeu) => (
+                    {offresAffichees.map((jeu) => (
                       <article
                         className="carte"
                         key={`${jeu.boutique}-${jeu.id}`}
@@ -605,6 +651,32 @@ function App() {
                       </article>
                     ))}
                   </div>
+                )}
+                {accueil && !chargement && (
+                  <div className="accueil-bas">
+                    <p>Envie de découvrir davantage de jeux ? Consulte l'ensemble des offres et filtre par boutique ou par prix.</p>
+                    <a href="/promotions/" className="accueil-cta" onClick={(e) => { e.preventDefault(); naviguer("/promotions/"); }}>Voir toutes les {promotions.length} promotions ↗</a>
+                    <a href="/comparateur/" className="accueil-lien" onClick={(e) => { e.preventDefault(); naviguer("/comparateur/"); }}>Comparer les prix entre boutiques</a>
+                  </div>
+                )}
+                {!accueil && resultats.length > JEUX_PAR_PAGE && (
+                  <nav className="pagination" aria-label="Pagination des promotions">
+                    <p>Page {pageActuelle} sur {nombrePages} — {resultats.length} offres</p>
+                    <div className="pagination-boutons">
+                      <button type="button" disabled={pageActuelle === 1} onClick={() => allerPage(pageActuelle - 1)}>← Précédent</button>
+                      {Array.from({ length: nombrePages }, (_, i) => i + 1)
+                        .filter((n) => n === 1 || n === nombrePages || Math.abs(n - pageActuelle) <= 2)
+                        .map((n, i, pages) => (
+                          <span className="pagination-element" key={n}>
+                            {i > 0 && n - pages[i - 1] > 1 && <span aria-hidden="true">…</span>}
+                            <a href={n === 1 ? "/promotions/" : `/promotions/?page=${n}`}
+                              aria-current={n === pageActuelle ? "page" : undefined}
+                              onClick={(e) => { e.preventDefault(); allerPage(n); }}>{n}</a>
+                          </span>
+                        ))}
+                      <button type="button" disabled={pageActuelle === nombrePages} onClick={() => allerPage(pageActuelle + 1)}>Suivant →</button>
+                    </div>
+                  </nav>
                 )}
               </section>
             ) : (
@@ -703,7 +775,7 @@ function App() {
 
                         
                         <div className="resume-reference">
-                          {groupe.prixMoyenHorsPromotion !== null ? (
+                          {groupe.prixMoyenHorsPromotion !== null && calculerEconomie(groupe.prixMoyenHorsPromotion, groupe.prixMinimum) !== null ? (
                             <>
                               <div><span>Prix moyen hors promotion (prix barrés)</span><strong>{formaterPrix(groupe.prixMoyenHorsPromotion)}</strong></div>
                               <div><span>Meilleur prix actuel</span><strong>{formaterPrix(groupe.prixMinimum)}</strong></div>

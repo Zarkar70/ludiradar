@@ -1172,3 +1172,24 @@ a {
 .fiche-jeu h2 { font-size: clamp(25px, 4vw, 38px); }
 .fiche-jeu img { display: block; max-width: 100%; max-height: 320px; object-fit: contain; margin: 20px auto; }
 .fiche-jeu .bouton-offre { max-width: 360px; }
+
+/* Accueil épuré et pagination du catalogue */
+.accueil-intro { display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; padding:28px 30px; margin:18px 0 32px; border-radius:22px; background:#fff; border:1px solid #e8ddfb; }
+.accueil-eyebrow { color:#7631dc; font-size:13px; font-weight:800; }
+.accueil-intro h2 { margin:8px 0; font-size:clamp(24px,3vw,34px); color:#1b294f; }
+.accueil-intro p { margin:0; color:#65718c; line-height:1.6; }
+.accueil-cta { display:inline-flex; align-items:center; justify-content:center; padding:15px 22px; border-radius:13px; color:#fff; background:linear-gradient(110deg,#7c35f4,#b51bb9); font-weight:800; text-align:center; }
+.accueil-cta:hover { filter:brightness(1.1); }
+.accueil-bas { margin-top:36px; padding:28px; border-radius:20px; background:#fff; border:1px solid #e8ddfb; text-align:center; }
+.accueil-bas p { color:#65718c; line-height:1.6; }
+.accueil-bas .accueil-cta { margin:10px; }
+.accueil-lien { display:inline-block; margin:10px; color:#6828d3; font-weight:800; }
+.pagination { margin:38px 0 0; text-align:center; }
+.pagination p { color:#65718c; font-size:14px; }
+.pagination-boutons { display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:8px; margin-top:15px; }
+.pagination-element { display:inline-flex; align-items:center; gap:8px; }
+.pagination-boutons button, .pagination-boutons a { display:inline-flex; align-items:center; justify-content:center; min-width:42px; min-height:42px; padding:9px 12px; border:1px solid #e0d6f5; border-radius:10px; background:white; color:#6025c5; font-weight:800; }
+.pagination-boutons a[aria-current="page"] { background:#762ee4; color:white; border-color:#762ee4; }
+.pagination-boutons button:disabled { opacity:.4; cursor:not-allowed; }
+.pagination-boutons button:not(:disabled):hover, .pagination-boutons a:hover { border-color:#762ee4; }
+@media (max-width:580px) { .accueil-intro { padding:20px; } .accueil-cta { width:100%; } .accueil-bas { padding:18px; } .pagination-boutons { gap:5px; } .pagination-boutons button,.pagination-boutons a { min-width:36px; min-height:38px; padding:7px; font-size:13px; } }
