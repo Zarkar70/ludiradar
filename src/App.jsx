@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { comparerNoms } from "./gameMatching.js";
 import "./App.css";
+import { cheminJeu } from "./seoRoutes.js";
 
 const URL_PROMOTIONS = "/promotions.json";
 
@@ -33,11 +34,22 @@ const calculerEconomie = (reference, prix) => {
 };
 
 function App() {
+  const [chemin, setChemin] = useState(window.location.pathname);
+  const naviguer = (nouveauChemin) => {
+    window.history.pushState({}, "", nouveauChemin);
+    setChemin(nouveauChemin);
+    window.scrollTo(0, 0);
+  };
+  useEffect(() => {
+    const ecouter = () => setChemin(window.location.pathname);
+    window.addEventListener("popstate", ecouter);
+    return () => window.removeEventListener("popstate", ecouter);
+  }, []);
   const [promotions, setPromotions] = useState([]);
   const [recherche, setRecherche] = useState("");
   const [boutique, setBoutique] = useState("Toutes");
   const [tri, setTri] = useState("reduction");
-  const [mode, setMode] = useState("promotions");
+  const [mode, setMode] = useState(window.location.pathname.startsWith("/comparateur") ? "comparateur" : "promotions");
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState("");
 
@@ -104,6 +116,37 @@ function App() {
       .sort((a, b) => a.ordre - b.ordre)
       .slice(0, 30);
   }, [promotions]);
+
+  const pageJeu = chemin.startsWith("/jeu/");
+  const jeuSelectionne = pageJeu
+    ? promotions.find((jeu) => cheminJeu(jeu) === chemin || cheminJeu(jeu).slice(0, -1) === chemin)
+    : null;
+  useEffect(() => {
+    const titre = jeuSelectionne
+      ? `${jeuSelectionne.nom} en promotion | LudiRadar`
+      : chemin.startsWith("/comparateur")
+        ? "Comparateur de prix de jeux de société | LudiRadar"
+        : chemin.startsWith("/promotions")
+          ? "Promotions de jeux de société | LudiRadar"
+          : "LudiRadar – Promotions et comparateur de jeux de société";
+    document.title = titre;
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "description";
+      document.head.appendChild(meta);
+    }
+    meta.content = jeuSelectionne
+      ? `Découvrez ${jeuSelectionne.nom} chez ${jeuSelectionne.boutique}, prix et réduction affichés sur LudiRadar.`
+      : "Comparez les promotions et les prix des jeux de société dans plusieurs boutiques spécialisées avec LudiRadar.";
+    let canonique = document.querySelector('link[rel="canonical"]');
+    if (!canonique) {
+      canonique = document.createElement("link");
+      canonique.rel = "canonical";
+      document.head.appendChild(canonique);
+    }
+    canonique.href = `https://ludiradar.pages.dev${chemin}`;
+  }, [chemin, jeuSelectionne]);
 
   const boutiques = useMemo(() => {
     const noms = promotions
@@ -332,7 +375,27 @@ function App() {
         <span className="beta-version">VERSION BÊTA</span>
       </div>
 
-      <main className="contenu">
+      <nav className="seo-navigation" aria-label="Navigation principale">
+        <a href="/" onClick={(e) => { e.preventDefault(); naviguer("/"); }}>Accueil</a>
+        <a href="/promotions/" onClick={(e) => { e.preventDefault(); setMode("promotions"); naviguer("/promotions/"); }}>Promotions</a>
+        <a href="/comparateur/" onClick={(e) => { e.preventDefault(); setMode("comparateur"); naviguer("/comparateur/"); }}>Comparateur</a>
+      </nav>
+      {pageJeu ? (
+        <main className="contenu">
+          {chargement ? <p>Chargement du jeu…</p> : jeuSelectionne ? (
+            <article className="fiche-jeu">
+              <a href="/promotions/" onClick={(e) => { e.preventDefault(); setMode("promotions"); naviguer("/promotions/"); }}>← Retour aux promotions</a>
+              <h2>{jeuSelectionne.nom}</h2>
+              {jeuSelectionne.image && <img src={jeuSelectionne.image} alt={`Boîte du jeu ${jeuSelectionne.nom}`} />}
+              <p>Offre proposée par {jeuSelectionne.boutique}</p>
+              <p><strong>{formaterPrix(jeuSelectionne.prix)}</strong> {prixValide(jeuSelectionne.ancien) && <span className="ancien">{formaterPrix(jeuSelectionne.ancien)}</span>}</p>
+              <p>Réduction annoncée : {jeuSelectionne.reduction}%</p>
+              <a className="bouton-offre" href={jeuSelectionne.url} target="_blank" rel="noopener noreferrer">Voir l'offre chez le marchand ↗</a>
+              <p>Les prix et disponibilités sont indicatifs. Vérifiez-les sur le site marchand.</p>
+            </article>
+          ) : <div className="message-etat"><h2>Offre indisponible</h2><p>Cette promotion n'est plus présente dans notre catalogue.</p><a href="/promotions/">Voir les promotions actuelles</a></div>}
+        </main>
+      ) : <main className="contenu">
         <section className="introduction">
           <div className="titre-section">
             <span className="icone-section">🔥</span>
@@ -380,7 +443,7 @@ function App() {
                 ? "onglet actif"
                 : "onglet"
             }
-            onClick={() => setMode("promotions")}
+            onClick={() => { setMode("promotions"); naviguer("/promotions/"); }}
           >
             🔥 Toutes les promotions
           </button>
@@ -392,7 +455,7 @@ function App() {
                 ? "onglet actif"
                 : "onglet"
             }
-            onClick={() => setMode("comparateur")}
+            onClick={() => { setMode("comparateur"); naviguer("/comparateur/"); }}
           >
             ⚖️ Comparateur de prix
           </button>
@@ -504,7 +567,7 @@ function App() {
                             🏬 {jeu.boutique}
                           </span>
 
-                          <h3>{jeu.nom}</h3>
+                          <h3><a className="lien-fiche" href={cheminJeu(jeu)} onClick={(e) => { e.preventDefault(); naviguer(cheminJeu(jeu)); }}>{jeu.nom}</a></h3>
 
                           <div className="bloc-prix">
                             <span className="ancien">
@@ -704,7 +767,7 @@ function App() {
           </>
         )}
       </main>
-
+      }
       <footer className="footer">
         <div className="footer-contenu">
           <div className="footer-marque">
