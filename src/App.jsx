@@ -49,9 +49,19 @@ function App() {
   }, []);
   const [promotions, setPromotions] = useState([]);
   const [recherche, setRecherche] = useState("");
+  const [rechercheAccueil, setRechercheAccueil] = useState("");
   const [boutique, setBoutique] = useState("Toutes");
   const [tri, setTri] = useState("reduction");
   const accueil = chemin.split("?")[0] === "/" || chemin.split("?")[0] === "";
+  const lancerRechercheAccueil = (e) => {
+    e.preventDefault();
+    const terme = rechercheAccueil.trim();
+    if (!terme) return;
+    setRecherche(terme);
+    setBoutique("Toutes");
+    setTri("reduction");
+    naviguer("/promotions/");
+  };
   const mode = chemin.startsWith("/comparateur") ? "comparateur" : "promotions";
   const pageDemandee = Number(new URLSearchParams(chemin.split("?")[1] || "").get("page") || 1);
   const [chargement, setChargement] = useState(true);
@@ -470,6 +480,23 @@ function App() {
             </div>
           </div>
         </section>
+
+        {accueil && (
+          <form className="recherche-accueil" onSubmit={lancerRechercheAccueil}>
+            <h2>🔍 Quel jeu recherches-tu ?</h2>
+            <p>Retrouve rapidement les promotions de tes jeux préférés.</p>
+            <div className="recherche-accueil-champs">
+              <input
+                type="search"
+                placeholder="Ex. : Skyjo, Catan, Azul..."
+                aria-label="Rechercher un jeu de société"
+                value={rechercheAccueil}
+                onChange={(e) => setRechercheAccueil(e.target.value)}
+              />
+              <button type="submit">Rechercher</button>
+            </div>
+          </form>
+        )}
 
         {accueil && (
           <div className="accueil-intro">
