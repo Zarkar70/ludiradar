@@ -51,7 +51,7 @@ function App() {
   const [recherche, setRecherche] = useState("");
   const [boutique, setBoutique] = useState("Toutes");
   const [tri, setTri] = useState("reduction");
-  const accueil = chemin === "/" || chemin === "";
+  const accueil = chemin.split("?")[0] === "/" || chemin.split("?")[0] === "";
   const mode = chemin.startsWith("/comparateur") ? "comparateur" : "promotions";
   const pageDemandee = Number(new URLSearchParams(chemin.split("?")[1] || "").get("page") || 1);
   const [chargement, setChargement] = useState(true);
@@ -149,7 +149,7 @@ function App() {
       canonique.rel = "canonical";
       document.head.appendChild(canonique);
     }
-    canonique.href = `https://ludiradar.pages.dev${chemin}`;
+    canonique.href = `https://ludiradar.pages.dev${chemin.split("?")[0] || "/"}`;
   }, [chemin, jeuSelectionne]);
 
   const boutiques = useMemo(() => {
