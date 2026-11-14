@@ -1218,3 +1218,43 @@ a {
 .fiche-comparaison-ligne a { padding: 9px 12px; border-radius: 9px; background: #7029df; color: white; font-size: 13px; font-weight: 700; }
 .fiche-meilleur { display: block; margin-top: 3px; color: #166534; font-size: 11px; }
 @media (max-width: 580px) { .fiche-jeu { padding: 20px; } .fiche-caracteristiques { grid-template-columns: 1fr; } }
+
+
+/* Fiche produit premium — mise en page responsive */
+.fiche-jeu-premium { max-width: 1100px; padding: 0; overflow: hidden; border: 1px solid #e9e0fa; box-shadow: 0 20px 60px rgba(40,25,95,.08); }
+.fiche-fil-ariane { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding: 22px 30px; border-bottom:1px solid #eee8f8; font-size:13px; color:#78829a; }
+.fiche-fil-ariane a { color:#6932c6; font-weight:700; }
+.fiche-fil-ariane [aria-current] { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:340px; }
+.fiche-hero { display:grid; grid-template-columns: minmax(0,1.05fr) minmax(0,1fr); gap:34px; padding:34px; align-items:center; }
+.fiche-visuel { position:relative; display:grid; place-items:center; min-height:390px; padding:35px; border:1px solid #eee6fc; border-radius:22px; background: radial-gradient(circle at 50% 40%,#fff 10%,#f5f0ff 100%); }
+.fiche-jeu-premium .fiche-visuel img { width:100%; max-width:430px; height:330px; max-height:none; margin:0; object-fit:contain; filter:drop-shadow(0 16px 15px rgba(40,24,80,.12)); }
+.fiche-pastille { position:absolute; top:18px; left:18px; padding:9px 14px; border-radius:12px; background:#ffd944; color:#362146; font-size:18px; font-weight:900; box-shadow:0 5px 15px #4730041a; }
+.fiche-image-vide { font-size:100px; }
+.fiche-achat { min-width:0; }
+.fiche-etiquette { display:inline-block; padding:8px 12px; border-radius:100px; background:#f0e8ff; color:#6828c9; font-size:12px; font-weight:800; }
+.fiche-jeu-premium .fiche-achat h2 { margin:14px 0 12px; color:#1d2850; font-size:clamp(27px,3vw,38px); line-height:1.18; overflow-wrap:anywhere; }
+.fiche-vendeur { color:#6c748d; font-size:15px; }
+.fiche-vendeur strong { color:#472384; }
+.fiche-prix-cadre { margin:24px 0 20px; padding:20px; border:1px solid #e5d9ff; border-radius:18px; background:linear-gradient(125deg,#fbf9ff,#f3ecff); }
+.fiche-prix-label { display:block; color:#6d6484; font-size:13px; font-weight:700; }
+.fiche-prix-ligne { display:flex; align-items:baseline; gap:13px; flex-wrap:wrap; margin-top:7px; }
+.fiche-prix-actuel { color:#6f2cdb; font-size:clamp(32px,4vw,46px); font-weight:900; letter-spacing:-1px; }
+.fiche-prix-ligne .ancien { font-size:17px; }
+.fiche-gain { margin:12px 0 0; color:#17663d; font-size:13px; font-weight:700; line-height:1.5; }
+.fiche-jeu-premium .fiche-cta { width:100%; max-width:none; justify-content:center; text-align:center; min-height:58px; padding:15px 18px; }
+.fiche-cta span { margin-left:6px; }
+.fiche-precision { color:#79839a; font-size:12px; line-height:1.6; }
+.fiche-jeu-premium .fiche-informations, .fiche-jeu-premium .fiche-comparaison { margin:0; padding:30px 34px; border-top:1px solid #eee8f8; }
+.fiche-section-titre { display:flex; align-items:center; gap:14px; margin-bottom:22px; }
+.fiche-section-icone { display:grid; place-items:center; flex:0 0 46px; height:46px; border-radius:13px; background:#f1e9ff; font-size:23px; }
+.fiche-section-titre h3 { margin:0 0 3px; color:#1c2850; font-size:22px; }
+.fiche-section-titre p { margin:0; color:#7b8498; font-size:13px; }
+.fiche-jeu-premium .fiche-attente { margin:0; padding:22px; border:1px dashed #d9c8f5; border-radius:15px; background:#faf7ff; color:#6b5c86; }
+.fiche-jeu-premium .fiche-caracteristiques { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.fiche-jeu-premium .fiche-caracteristique { padding:14px; }
+.fiche-jeu-premium .fiche-comparaison-ligne { padding:15px 18px; }
+.fiche-comparaison-top { background:#f2fcf5; border-color:#caecd4; }
+.fiche-retour { display:inline-block; margin:0 34px 32px; color:#7031d5; font-weight:800; }
+.fiche-retour:hover { text-decoration:underline; }
+@media (max-width:800px) { .fiche-hero { grid-template-columns:1fr; gap:22px; } .fiche-visuel { min-height:300px; } .fiche-jeu-premium .fiche-caracteristiques { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:580px) { .fiche-jeu-premium { padding:0; border-radius:17px; } .fiche-fil-ariane { padding:16px 18px; } .fiche-hero { padding:18px; } .fiche-visuel { min-height:255px; padding:22px; } .fiche-jeu-premium .fiche-visuel img { height:245px; } .fiche-jeu-premium .fiche-informations, .fiche-jeu-premium .fiche-comparaison { padding:24px 18px; } .fiche-jeu-premium .fiche-caracteristiques { grid-template-columns:1fr; } .fiche-retour { margin:0 18px 24px; } .fiche-prix-cadre { padding:17px; } }

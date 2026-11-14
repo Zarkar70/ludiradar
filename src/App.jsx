@@ -493,30 +493,56 @@ function App() {
       {pageJeu ? (
         <main className="contenu">
           {chargement ? <p>Chargement du jeu…</p> : jeuSelectionne ? (
-            <article className="fiche-jeu">
-              <a href="/promotions/" onClick={(e) => { e.preventDefault(); naviguer("/promotions/"); }}>← Retour aux promotions</a>
-              <h2>{jeuSelectionne.nom}</h2>
-              {jeuSelectionne.image && <img src={jeuSelectionne.image} alt={`Boîte du jeu ${jeuSelectionne.nom}`} />}
-              <p>Offre proposée par {jeuSelectionne.boutique}</p>
-              <p><strong>{formaterPrix(jeuSelectionne.prix)}</strong> {prixValide(jeuSelectionne.ancien) && <span className="ancien">{formaterPrix(jeuSelectionne.ancien)}</span>}</p>
-              <p>Réduction annoncée : {jeuSelectionne.reduction}%</p>
-              <a className="bouton-offre" href={jeuSelectionne.url} target="_blank" rel="noopener noreferrer">Voir l'offre chez le marchand ↗</a>
+            <article className="fiche-jeu fiche-jeu-premium">
+              <nav className="fiche-fil-ariane" aria-label="Fil d’Ariane">
+                <a href="/" onClick={(e) => { e.preventDefault(); naviguer("/"); }}>Accueil</a>
+                <span aria-hidden="true">›</span>
+                <a href="/promotions/" onClick={(e) => { e.preventDefault(); naviguer("/promotions/"); }}>Promotions</a>
+                <span aria-hidden="true">›</span>
+                <span aria-current="page">{jeuSelectionne.nom}</span>
+              </nav>
+              <div className="fiche-hero">
+                <div className="fiche-visuel">
+                  {Number(jeuSelectionne.reduction) > 0 && <span className="fiche-pastille">−{jeuSelectionne.reduction} %</span>}
+                  {jeuSelectionne.image
+                    ? <img src={jeuSelectionne.image} alt={`Boîte du jeu ${jeuSelectionne.nom}`} />
+                    : <span className="fiche-image-vide" aria-label="Image indisponible">🎲</span>}
+                </div>
+                <div className="fiche-achat">
+                  <span className="fiche-etiquette">🎲 Jeu de société</span>
+                  <h2>{jeuSelectionne.nom}</h2>
+                  <p className="fiche-vendeur">Offre proposée par <strong>{jeuSelectionne.boutique}</strong></p>
+                  <div className="fiche-prix-cadre">
+                    <span className="fiche-prix-label">Prix promotionnel</span>
+                    <div className="fiche-prix-ligne">
+                      <strong className="fiche-prix-actuel">{formaterPrix(jeuSelectionne.prix)}</strong>
+                      {prixValide(jeuSelectionne.ancien) !== null && <span className="ancien">{formaterPrix(jeuSelectionne.ancien)}</span>}
+                    </div>
+                    {calculerEconomie(prixValide(jeuSelectionne.ancien), jeuSelectionne.prix)?.montant > 0 &&
+                      <p className="fiche-gain">Vous économisez {formaterPrix(calculerEconomie(prixValide(jeuSelectionne.ancien), jeuSelectionne.prix).montant)} par rapport au prix barré du marchand.</p>}
+                  </div>
+                  <a className="bouton-offre fiche-cta" href={jeuSelectionne.url} target="_blank" rel="noopener noreferrer">
+                    Voir l'offre chez {jeuSelectionne.boutique} <span aria-hidden="true">↗</span>
+                  </a>
+                  <p className="fiche-precision">Prix et disponibilité à vérifier sur le site du marchand. Frais de livraison éventuels en supplément.</p>
+                </div>
+              </div>
               <section className="fiche-informations" aria-label="Informations sur le jeu">
-                <h3>🎲 À propos du jeu</h3>
+                <div className="fiche-section-titre"><span className="fiche-section-icone" aria-hidden="true">📖</span><div><h3>À propos du jeu</h3><p>Les informations essentielles pour faire votre choix</p></div></div>
                 <CaracteristiquesJeu details={detailsSelectionnes} />
               </section>
               {offresMemeJeu.length > 1 && <section className="fiche-comparaison">
-                <h3>⚖️ Comparer les offres</h3>
-                <p>Offres portant le même nom. Vérifiez l'édition et les frais de livraison.</p>
+                <div className="fiche-section-titre"><span className="fiche-section-icone" aria-hidden="true">⚖️</span><div><h3>Comparer les offres</h3><p>Retrouvez les prix affichés par les boutiques</p></div></div>
+                <p className="fiche-comparaison-note">Offres portant le même nom : vérifiez l'édition et les frais de livraison avant de commander.</p>
                 <div className="fiche-comparaison-liste">{offresMemeJeu.map((offre, index) =>
-                  <div className="fiche-comparaison-ligne" key={`${offre.boutique}-${offre.id}`}>
-                    <span>{offre.boutique}{index === 0 && <small className="fiche-meilleur">Meilleur prix affiché</small>}</span>
+                  <div className={`fiche-comparaison-ligne ${index === 0 ? "fiche-comparaison-top" : ""}`} key={`${offre.boutique}-${offre.id}`}>
+                    <span>{offre.boutique}{index === 0 && <small className="fiche-meilleur">✓ Meilleur prix affiché</small>}</span>
                     <strong>{formaterPrix(offre.prix)}</strong>
                     <a href={offre.url} target="_blank" rel="noopener noreferrer">Voir l'offre ↗</a>
                   </div>
                 )}</div>
               </section>}
-              <p>Les prix et disponibilités sont indicatifs. Vérifiez-les sur le site marchand.</p>
+              <a className="fiche-retour" href="/promotions/" onClick={(e) => { e.preventDefault(); naviguer("/promotions/"); }}>← Revenir aux promotions</a>
             </article>
           ) : <div className="message-etat"><h2>Offre indisponible</h2><p>Cette promotion n'est plus présente dans notre catalogue.</p><a href="/promotions/">Voir les promotions actuelles</a></div>}
         </main>
