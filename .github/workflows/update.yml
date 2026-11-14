@@ -1,4 +1,3 @@
-
 name: LudiRadar - Actualisation automatique
 
 on:
@@ -48,17 +47,20 @@ jobs:
         run: |
           python -c "import json; from pathlib import Path; offres=json.loads(Path('public/promotions.json').read_text(encoding='utf-8')); assert isinstance(offres,list) and len(offres)>0; print(f'{len(offres)} promotions verifiees')"
 
+      - name: Preparer les fiches des jeux
+        run: python scripts/enrichir_jeux.py
+
       - name: Enregistrer les modifications
         run: |
           git config user.name "LudiRadar Bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add public/promotions.json
+          git add public/promotions.json public/jeux-details.json
 
           if git diff --cached --quiet; then
             echo "Aucune modification"
           else
-            git commit -m "Actualisation automatique des promotions"
+            git commit -m "Actualisation automatique des promotions et fiches"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
