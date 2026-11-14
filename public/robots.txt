@@ -1,0 +1,5 @@
+
+User-agent: *
+Allow: /
+
+Sitemap: https://ludiradar.pages.dev/sitemap.xml
