@@ -1193,3 +1193,28 @@ a {
 .pagination-boutons button:disabled { opacity:.4; cursor:not-allowed; }
 .pagination-boutons button:not(:disabled):hover, .pagination-boutons a:hover { border-color:#762ee4; }
 @media (max-width:580px) { .accueil-intro { padding:20px; } .accueil-cta { width:100%; } .accueil-bas { padding:18px; } .pagination-boutons { gap:5px; } .pagination-boutons button,.pagination-boutons a { min-width:36px; min-height:38px; padding:7px; font-size:13px; } }
+
+
+/* Fiches enrichies LudiRadar — les champs vides ne sont pas affichés */
+.fiche-informations, .fiche-comparaison { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e8e0f8; }
+.fiche-informations h3, .fiche-comparaison h3 { margin: 0 0 18px; color: #1b294f; font-size: 22px; }
+.fiche-caracteristiques { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.fiche-caracteristique { display: flex; align-items: center; gap: 12px; padding: 15px; border: 1px solid #e9e2fb; border-radius: 14px; background: #faf7ff; }
+.fiche-caracteristique > span { font-size: 24px; }
+.fiche-caracteristique div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.fiche-caracteristique small { color: #66728a; font-size: 12px; }
+.fiche-caracteristique strong { color: #2d2155; overflow-wrap: anywhere; }
+.fiche-attente { padding: 16px; border-radius: 12px; background: #f6f1ff; color: #65577c; }
+.fiche-detail-ligne { color: #384362; line-height: 1.6; }
+.fiche-description { margin-top: 22px; }
+.fiche-description h3 { margin-bottom: 8px; }
+.fiche-description p { line-height: 1.75; white-space: pre-line; color: #384362; }
+.fiche-source { font-size: 12px; color: #6c7690; }
+.fiche-comparaison > p { color: #66728a; font-size: 13px; }
+.fiche-comparaison-liste { display: flex; flex-direction: column; gap: 10px; }
+.fiche-comparaison-ligne { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 13px; border: 1px solid #ece5fb; border-radius: 12px; }
+.fiche-comparaison-ligne > span { flex: 1 1 130px; font-weight: 700; }
+.fiche-comparaison-ligne strong { color: #6b27e7; white-space: nowrap; }
+.fiche-comparaison-ligne a { padding: 9px 12px; border-radius: 9px; background: #7029df; color: white; font-size: 13px; font-weight: 700; }
+.fiche-meilleur { display: block; margin-top: 3px; color: #166534; font-size: 11px; }
+@media (max-width: 580px) { .fiche-jeu { padding: 20px; } .fiche-caracteristiques { grid-template-columns: 1fr; } }

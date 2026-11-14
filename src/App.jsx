@@ -5,6 +5,47 @@ import "./App.css";
 import { cheminJeu } from "./seoRoutes.js";
 
 const URL_PROMOTIONS = "/promotions.json";
+const URL_DETAILS = "/jeux-details.json";
+
+// Même normalisation que scripts/enrichir_jeux.py pour les noms français usuels.
+const cleJeu = (nom) => String(nom || "")
+  .toLowerCase()
+  .normalize("NFKD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-|-$/g, "");
+
+const valeurPresente = (valeur) => valeur !== null && valeur !== undefined && valeur !== "";
+const listeTexte = (valeur) => Array.isArray(valeur) ? valeur.filter((x) => typeof x === "string" && x.trim()) : [];
+
+function CaracteristiquesJeu({ details }) {
+  if (!details) return <p className="fiche-attente">Caractéristiques du jeu en cours de préparation.</p>;
+  const infos = [
+    { icone: "👥", titre: "Joueurs", valeur: valeurPresente(details.joueursMin) && valeurPresente(details.joueursMax)
+      ? (details.joueursMin === details.joueursMax ? `${details.joueursMin}` : `${details.joueursMin} à ${details.joueursMax}`) : null },
+    { icone: "⏱️", titre: "Durée", valeur: valeurPresente(details.dureeMinutes) ? `${details.dureeMinutes} min` : null },
+    { icone: "🎂", titre: "Âge", valeur: valeurPresente(details.ageMinimum) ? `Dès ${details.ageMinimum} ans` : null },
+    { icone: "🏢", titre: "Éditeur", valeur: details.editeur || null },
+  ].filter((info) => valeurPresente(info.valeur));
+  const categories = listeTexte(details.categories);
+  const auteurs = listeTexte(details.auteurs);
+  const description = typeof details.description === "string" ? details.description.trim() : "";
+  if (!infos.length && !categories.length && !auteurs.length && !description) {
+    return <p className="fiche-attente">Caractéristiques du jeu en cours de préparation.</p>;
+  }
+  return <>
+    {infos.length > 0 && <div className="fiche-caracteristiques">{infos.map((info) =>
+      <div className="fiche-caracteristique" key={info.titre}>
+        <span aria-hidden="true">{info.icone}</span><div><small>{info.titre}</small><strong>{info.valeur}</strong></div>
+      </div>
+    )}</div>}
+    {categories.length > 0 && <p className="fiche-detail-ligne"><strong>Catégories :</strong> {categories.join(", ")}</p>}
+    {auteurs.length > 0 && <p className="fiche-detail-ligne"><strong>Auteur(s) :</strong> {auteurs.join(", ")}</p>}
+    {description && <div className="fiche-description"><h3>Description du jeu</h3><p>{description}</p></div>}
+    {details.source && <p className="fiche-source">Source des caractéristiques : {details.source}</p>}
+  </>;
+}
+
 const JEUX_PAR_PAGE = 24;
 const JEUX_ACCUEIL = 12;
 
@@ -48,6 +89,7 @@ function App() {
     return () => window.removeEventListener("popstate", ecouter);
   }, []);
   const [promotions, setPromotions] = useState([]);
+  const [detailsJeux, setDetailsJeux] = useState({});
   const [recherche, setRecherche] = useState("");
   const [rechercheAccueil, setRechercheAccueil] = useState("");
   const [boutique, setBoutique] = useState("Toutes");
@@ -105,6 +147,21 @@ function App() {
     return () => controller.abort();
   }, []);
 
+  // Les fiches restent consultables si le fichier de détails n'est pas encore publié.
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(URL_DETAILS, { signal: controller.signal, cache: "no-cache" })
+      .then((reponse) => {
+        if (!reponse.ok) throw new Error("Détails indisponibles");
+        return reponse.json();
+      })
+      .then((donnees) => {
+        if (donnees && typeof donnees === "object" && !Array.isArray(donnees)) setDetailsJeux(donnees);
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
+
   // Choix stable et diversifie de boites issues des promotions actuelles.
   const imagesBandeau = useMemo(() => {
     const nomsVus = new Set();
@@ -135,6 +192,13 @@ function App() {
   const jeuSelectionne = pageJeu
     ? promotions.find((jeu) => cheminJeu(jeu) === chemin || cheminJeu(jeu).slice(0, -1) === chemin)
     : null;
+  const detailsSelectionnes = jeuSelectionne ? detailsJeux[cleJeu(jeuSelectionne.nom)] : null;
+  // Comparer ici uniquement les intitulés strictement identiques : les rapprochements
+  // approximatifs du comparateur peuvent mélanger éditions et extensions.
+  const offresMemeJeu = jeuSelectionne ? promotions
+    .filter((offre) => cleJeu(offre.nom) === cleJeu(jeuSelectionne.nom) && prixValide(offre.prix) !== null)
+    .sort((a, b) => Number(a.prix) - Number(b.prix)) : [];
+
   useEffect(() => {
     const titre = jeuSelectionne
       ? `${jeuSelectionne.nom} en promotion | LudiRadar`
@@ -437,6 +501,21 @@ function App() {
               <p><strong>{formaterPrix(jeuSelectionne.prix)}</strong> {prixValide(jeuSelectionne.ancien) && <span className="ancien">{formaterPrix(jeuSelectionne.ancien)}</span>}</p>
               <p>Réduction annoncée : {jeuSelectionne.reduction}%</p>
               <a className="bouton-offre" href={jeuSelectionne.url} target="_blank" rel="noopener noreferrer">Voir l'offre chez le marchand ↗</a>
+              <section className="fiche-informations" aria-label="Informations sur le jeu">
+                <h3>🎲 À propos du jeu</h3>
+                <CaracteristiquesJeu details={detailsSelectionnes} />
+              </section>
+              {offresMemeJeu.length > 1 && <section className="fiche-comparaison">
+                <h3>⚖️ Comparer les offres</h3>
+                <p>Offres portant le même nom. Vérifiez l'édition et les frais de livraison.</p>
+                <div className="fiche-comparaison-liste">{offresMemeJeu.map((offre, index) =>
+                  <div className="fiche-comparaison-ligne" key={`${offre.boutique}-${offre.id}`}>
+                    <span>{offre.boutique}{index === 0 && <small className="fiche-meilleur">Meilleur prix affiché</small>}</span>
+                    <strong>{formaterPrix(offre.prix)}</strong>
+                    <a href={offre.url} target="_blank" rel="noopener noreferrer">Voir l'offre ↗</a>
+                  </div>
+                )}</div>
+              </section>}
               <p>Les prix et disponibilités sont indicatifs. Vérifiez-les sur le site marchand.</p>
             </article>
           ) : <div className="message-etat"><h2>Offre indisponible</h2><p>Cette promotion n'est plus présente dans notre catalogue.</p><a href="/promotions/">Voir les promotions actuelles</a></div>}
