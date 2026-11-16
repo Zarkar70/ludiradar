@@ -8329,6 +8329,20 @@
     "nom": "Pack Jetons Acryliques pour Harmonies et Extension",
     "source": ""
   },
+  "pack-planet-unknow-extension": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Pack Planet Unknow + Extension",
+    "source": ""
+  },
   "pack-sky-team": {
     "ageMinimum": null,
     "auteurs": [],
@@ -8425,6 +8439,20 @@
     "joueursMax": null,
     "joueursMin": null,
     "nom": "Paladins du Royaume de L'Ouest - Big Box",
+    "source": ""
+  },
+  "palet-match": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Palet Match",
     "source": ""
   },
   "paper-tales-ce-qui-forge-les-legendes": {
