@@ -12599,6 +12599,20 @@
     "nom": "Rubik's Cage",
     "source": ""
   },
+  "rubik-s-cube-3x3": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Rubik's Cube 3x3",
+    "source": ""
+  },
   "rubik-s-cubers-batman": {
     "ageMinimum": null,
     "auteurs": [],
