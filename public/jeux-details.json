@@ -3051,6 +3051,20 @@
     "nom": "Coexist - Matagot",
     "source": ""
   },
+  "color-addict": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Color Addict",
+    "source": ""
+  },
   "colorado": {
     "ageMinimum": null,
     "auteurs": [],
@@ -10919,6 +10933,20 @@
     "nom": "Pack Dice Throne : Saison 2",
     "source": ""
   },
+  "pack-feya-s-swamp-avec-stickers": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Pack Feya's Swamp avec Stickers",
+    "source": ""
+  },
   "pack-foret-mixte": {
     "ageMinimum": null,
     "auteurs": [],
@@ -11001,6 +11029,20 @@
     "joueursMax": null,
     "joueursMin": null,
     "nom": "Pack Planet Unknow + Extension",
+    "source": ""
+  },
+  "pack-road-master-extension": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Pack Road Master + Extension",
     "source": ""
   },
   "pack-sky-team": {
