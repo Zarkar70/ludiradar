@@ -2477,6 +2477,20 @@
     "nom": "Captain Sonar - Opération Dragon",
     "source": ""
   },
+  "carbone": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Carbone",
+    "source": ""
+  },
   "carnegie": {
     "ageMinimum": null,
     "auteurs": [],
