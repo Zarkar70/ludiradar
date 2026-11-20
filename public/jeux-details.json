@@ -307,6 +307,62 @@
     "nom": "Aeon's End - Jetons Puissance et Charge en acrylique",
     "source": ""
   },
+  "aeon-s-end-plateau-gravehold": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Aeon's End - Plateau Gravehold",
+    "source": ""
+  },
+  "aeon-s-end-plateau-joueur": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Aeon's End - Plateau joueur",
+    "source": ""
+  },
+  "aeon-s-end-plateau-nemesis": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Aeon's End - Plateau Nemesis",
+    "source": ""
+  },
+  "aeon-s-end-plateau-reserve": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Aeon's End - Plateau réserve",
+    "source": ""
+  },
   "aeterna": {
     "ageMinimum": null,
     "auteurs": [],
@@ -6759,6 +6815,20 @@
     "joueursMax": null,
     "joueursMin": null,
     "nom": "Heroes of Might and Magic III - Pack complet version française",
+    "source": ""
+  },
+  "heroes-of-might-and-magic-iii-plateau-joueur": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Heroes of Might and Magic III - Plateau Joueur",
     "source": ""
   },
   "hidden-leaders-duel": {
