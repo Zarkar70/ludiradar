@@ -3499,6 +3499,20 @@
     "nom": "Cuistot Fury : Frénésie",
     "source": ""
   },
+  "cup-the-crab": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Cup The Crab",
+    "source": ""
+  },
   "curators": {
     "ageMinimum": null,
     "auteurs": [],
