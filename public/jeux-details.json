@@ -4283,6 +4283,20 @@
     "nom": "Deconnexio",
     "source": ""
   },
+  "deep-detective-les-secrets-du-lac": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Deep Detective - Les Secrets du Lac",
+    "source": ""
+  },
   "deep-rock-galactic-plastic-tokens": {
     "ageMinimum": null,
     "auteurs": [],
@@ -5107,6 +5121,20 @@
     "joueursMax": null,
     "joueursMin": null,
     "nom": "Draconis - L'appel de l'Aventure + Stretch Goals",
+    "source": ""
+  },
+  "dracula-jeu-d-impostures": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Dracula - Jeu d'Impostures",
     "source": ""
   },
   "dragon-boats-of-the-four-seas-version-deluxe": {
@@ -9771,6 +9799,20 @@
     "nom": "Le Château Blanc Duel - Jetons en acrylique",
     "source": ""
   },
+  "le-clan-de-la-muette": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Le Clan de la Muette",
+    "source": ""
+  },
   "le-dilemme-du-roi": {
     "ageMinimum": null,
     "auteurs": [],
@@ -9965,6 +10007,20 @@
     "joueursMax": null,
     "joueursMin": null,
     "nom": "Le Trône de Fer : le Jeu de Figurines - Tirailleurs des Pitres Sanglants",
+    "source": ""
+  },
+  "le-voleur-de-crocante": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Le Voleur de Crocante",
     "source": ""
   },
   "left-right-dilemma": {
@@ -10847,6 +10903,20 @@
     "joueursMax": null,
     "joueursMin": null,
     "nom": "Marvel: Crisis Protocol Alliances - La Nuit du Bouffon",
+    "source": ""
+  },
+  "marvel-crisis-protocol-leader-red-hulk-sensational-she-hulk": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Marvel: Crisis Protocol – Leader, Red Hulk & Sensational She-Hulk",
     "source": ""
   },
   "marvel-crisis-protocol-outils-de-mesure": {
@@ -16911,6 +16981,48 @@
     "nom": "Star Wars : Légion - B2 Super Rocket Battle Droids",
     "source": ""
   },
+  "star-wars-legion-black-sun-enforcers": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Star Wars: Legion – Black Sun Enforcers",
+    "source": ""
+  },
+  "star-wars-legion-darth-maul-sith-probe-operative": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Star Wars: Legion -Darth Maul & Sith Probe Operative",
+    "source": ""
+  },
+  "star-wars-legion-guerilla-troopers": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Star Wars: Legion - Guerilla Troopers",
+    "source": ""
+  },
   "star-wars-legion-kit-d-accessoires": {
     "ageMinimum": null,
     "auteurs": [],
@@ -16923,6 +17035,20 @@
     "joueursMax": null,
     "joueursMin": null,
     "nom": "Star Wars : Légion - Kit d'Accessoires",
+    "source": ""
+  },
+  "star-wars-legion-laat-le-patrol-transport": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Star Wars: Legion – LAAT-le Patrol Transport",
     "source": ""
   },
   "star-wars-legion-movement-tools-and-range-ruler-pack": {
