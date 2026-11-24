@@ -3303,6 +3303,20 @@
     "nom": "Bundle Lum42 + Extension Unités Spéciales",
     "source": ""
   },
+  "cabinet-de-curiosites": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "Cabinet de Curiosités",
+    "source": ""
+  },
   "cachamot": {
     "ageMinimum": null,
     "auteurs": [],
@@ -11113,6 +11127,20 @@
     "joueursMax": null,
     "joueursMin": null,
     "nom": "La Habana - Igiari",
+    "source": ""
+  },
+  "la-ligne-pourpre": {
+    "ageMinimum": null,
+    "auteurs": [],
+    "categories": [],
+    "dateEnrichissement": null,
+    "description": "",
+    "dureeMinutes": null,
+    "ean": "",
+    "editeur": "",
+    "joueursMax": null,
+    "joueursMin": null,
+    "nom": "La Ligne Pourpre",
     "source": ""
   },
   "la-patisserie-rococo": {
